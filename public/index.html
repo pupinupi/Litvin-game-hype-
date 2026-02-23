@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Литвин. Путь к хайпу</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+body{background:#111;color:white;text-align:center;font-family:Arial}
+#board{position:relative;width:1024px;height:1024px;margin:auto;background:url("board.jpg");background-size:cover;border:4px solid #fff}
+.token{width:28px;height:28px;border-radius:50%;position:absolute;transition:0.4s;box-shadow:0 0 10px #fff}
+.active{box-shadow:0 0 25px gold}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center}
+.modalContent{background:#222;padding:30px;border-radius:10px}
+</style>
+</head>
+<body>
+
+<div id="rules" class="modal">
+<div class="modalContent">
+<h2>Правила</h2>
+<p>Набери 100 хайпа первым.</p>
+<button onclick="closeRules()">Начать</button>
+</div>
+</div>
+
+<div id="lobby">
+<input id="name" placeholder="Имя"><br><br>
+<input id="room" placeholder="Комната"><br><br>
+<select id="color">
+<option value="yellow">Жёлтый</option>
+<option value="red">Красный</option>
+<option value="blue">Синий</option>
+<option value="purple">Фиолетовый</option>
+</select><br><br>
+<button onclick="join()">Войти</button>
+</div>
+
+<div id="game" style="display:none">
+<h3 id="turn"></h3>
+<h3 id="dice"></h3>
+<h3 id="hype"></h3>
+<h3 id="message"></h3>
+<div id="board"></div>
+<button onclick="roll()">Бросить кубик</button>
+</div>
+
+<div id="scandalModal" class="modal" style="display:none">
+<div class="modalContent">
+<h2 id="scandalText"></h2>
+<button onclick="closeScandal()">OK</button>
+</div>
+</div>
+
+<script>
+const socket=io();
+let state=null,myId=null,roomCode=null;
+
+const positions=[
+{x:91,y:583},{x:102,y:450},{x:80,y:345},{x:99,y:232},{x:99,y:133},
+{x:218,y:97},{x:348,y:91},{x:500,y:88},{x:624,y:102},{x:762,y:91},
+{x:895,y:130},{x:912,y:204},{x:912,y:337},{x:909,y:425},{x:901,y:580},
+{x:771,y:588},{x:641,y:588},{x:483,y:594},{x:331,y:586},{x:218,y:594}
+];
+
+function closeRules(){document.getElementById("rules").style.display="none"}
+
+function join(){
+  const name=name.value;
+  const room=room.value;
+  const color=color.value;
+  roomCode=room;
+  socket.emit("join",{name,room,color});
+  lobby.style.display="none";
+  game.style.display="block";
+}
+
+socket.on("myId",id=>myId=id);
+
+socket.on("state",s=>{
+  state=s;
+  render();
+});
+
+socket.on("winner",w=>{
+  alert("Победил "+w.name);
+  location.reload();
+});
+
+function roll(){
+  if(!state) return;
+  if(state.players[state.turn].id!==myId) return;
+  socket.emit("roll",roomCode);
+}
+
+function render(){
+  board.innerHTML="";
+  turn.innerText="Ход: "+state.players[state.turn].name;
+  dice.innerText="🎲 "+state.players[state.turn===0?state.players.length-1:state.turn-1].lastDice;
+
+  let hypeText="";
+  state.players.forEach(p=>hypeText+=p.name+": "+p.hype+" | ");
+  hype.innerText=hypeText;
+
+  const last=state.players[state.turn===0?state.players.length-1:state.turn-1];
+  message.innerText=last.message;
+
+  if(last.message.includes("🔥")||last.message.includes("🫣")||last.message.includes("😱")){
+    scandalText.innerText=last.message;
+    scandalModal.style.display="flex";
+  }
+
+  state.players.forEach(p=>{
+    const t=document.createElement("div");
+    t.className="token";
+    if(p.id===state.players[state.turn].id) t.classList.add("active");
+    t.style.background=p.color;
+    t.style.left=positions[p.position].x+"px";
+    t.style.top=positions[p.position].y+"px";
+    board.appendChild(t);
+  });
+}
+
+function closeScandal(){
+  scandalModal.style.display="none";
+}
+</script>
+</body>
+</html>
