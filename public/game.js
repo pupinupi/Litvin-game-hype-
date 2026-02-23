@@ -1,181 +1,95 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
+const socket = io();
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const name = localStorage.getItem("name");
+const room = localStorage.getItem("room");
+const color = localStorage.getItem("color");
 
-app.use(express.static("public"));
+socket.emit("joinRoom", { name, roomCode: room, color });
 
-const rooms = {};
+const board = document.getElementById("board");
+const cube = document.getElementById("cube");
+const diceResult = document.getElementById("diceResult");
+const rollBtn = document.getElementById("rollBtn");
 
-const BOARD = [
-  { type: "start" },
-  { type: "plus", value: 2 },
-  { type: "plus", value: 3 },
-  { type: "plus", value: 4 },
-  { type: "block" },
+let playersState = [];
+let currentTurn = 0;
 
-  { type: "plus", value: 8 },
-  { type: "scandal" },
-  { type: "plus", value: 2 },
-  { type: "court" },
-  { type: "plus", value: 3 },
-  { type: "risk" },
+function startGame(){
+    document.getElementById("rulesModal").style.display = "none";
+}
 
-  { type: "plus", value: 3 },
-  { type: "jail" },
-  { type: "block" },
-  { type: "plus", value: 5 },
+function roll(){
+    socket.emit("rollDice", room);
+}
 
-  { type: "plus", value: 3 },
-  { type: "scandal" },
-  { type: "plus", value: 2 },
-  { type: "risk" },
-  { type: "scandal" }
-];
+socket.on("updatePlayers", (data)=>{
+    playersState = data.players;
+    currentTurn = data.turn;
+    renderPlayers();
+    updateTurn();
+});
 
-const SCANDALS = [
-  { text: "Перегрел аудиторию 🔥", value: -1 },
-  { text: "Громкий заголовок 🫣", value: -2 },
-  { text: "Это монтаж 😱", value: -3 },
-  { text: "Меня взломали #️⃣", value: -3, all: true },
-  { text: "Подписчики в шоке 😮", value: -4 },
-  { text: "Удаляй пока не поздно 🤫", value: -5 },
-  { text: "Это контент, вы не понимаете 🙄", value: -5, skip: true }
-];
+socket.on("diceRolled", ({dice})=>{
+    showDice(dice);
+    diceResult.innerText = "Выпало: " + dice;
+});
 
-io.on("connection", (socket) => {
+socket.on("riskResult", ({dice,result})=>{
+    showDice(dice);
+    diceResult.innerText =
+        `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
+});
 
-  socket.on("joinRoom", ({ name, roomCode, color }) => {
+socket.on("scandalCard", (data)=>{
+    let message = data.text + ` (${data.value} хайпа)`;
+    if (data.all) message += " — У ВСЕХ!";
+    if (data.skip) message += " Пропуск хода!";
+    alert(message);
+});
 
-    socket.join(roomCode);
+function renderPlayers(){
+    board.querySelectorAll(".token").forEach(t=>t.remove());
 
-    if (!rooms[roomCode]) {
-      rooms[roomCode] = { players: [], turn: 0 };
-    }
-
-    rooms[roomCode].players.push({
-      id: socket.id,
-      name,
-      color,
-      position: 0,
-      hype: 0,
-      skipTurn: false
+    playersState.forEach(p=>{
+        const token = document.createElement("div");
+        token.classList.add("token");
+        token.style.background = p.color;
+        token.style.left = CELL_POSITIONS[p.position].x + "px";
+        token.style.top = CELL_POSITIONS[p.position].y + "px";
+        board.appendChild(token);
     });
 
-    emitUpdate(roomCode);
-  });
-
-  socket.on("rollDice", (roomCode) => {
-
-    const room = rooms[roomCode];
-    if (!room) return;
-
-    const player = room.players[room.turn];
-    if (!player || player.id !== socket.id) return;
-
-    // Пропуск
-    if (player.skipTurn) {
-      player.skipTurn = false;
-      room.turn = getNextTurn(room);
-      emitUpdate(roomCode);
-      return;
-    }
-
-    const dice = Math.floor(Math.random() * 6) + 1;
-    io.to(roomCode).emit("diceRolled", { dice });
-
-    player.position = (player.position + dice) % BOARD.length;
-
-    applyCell(roomCode, room, player);
-
-    if (player.hype >= 100) {
-      io.to(roomCode).emit("gameOver", { winner: player.name });
-      return;
-    }
-
-    room.turn = getNextTurn(room);
-    emitUpdate(roomCode);
-  });
-
-});
-
-// ========================
-
-function applyCell(roomCode, room, player) {
-
-  const cell = BOARD[player.position];
-
-  switch(cell.type){
-
-    case "plus":
-      player.hype += cell.value;
-      break;
-
-    case "risk":
-      const riskDice = Math.floor(Math.random() * 6) + 1;
-      const result = riskDice >= 4 ? 5 : -5;
-      player.hype += result;
-
-      io.to(roomCode).emit("riskResult", {
-        dice: riskDice,
-        result
-      });
-      break;
-
-    case "scandal":
-      const scandal = SCANDALS[Math.floor(Math.random()*SCANDALS.length)];
-
-      if (scandal.all) {
-        room.players.forEach(p=>{
-          p.hype += scandal.value;
-          if (p.hype < 0) p.hype = 0;
-        });
-      } else {
-        player.hype += scandal.value;
-      }
-
-      if (scandal.skip) {
-        player.skipTurn = true;
-      }
-
-      io.to(roomCode).emit("scandalCard", scandal);
-      break;
-
-    case "block":
-      player.skipTurn = true;
-      break;
-
-    case "jail":
-      player.hype = Math.floor(player.hype / 2);
-      player.skipTurn = true;
-      break;
-
-    case "court":
-      player.skipTurn = true;
-      break;
-  }
-
-  if (player.hype < 0) player.hype = 0;
+    renderScore();
 }
 
-function getNextTurn(room){
-  if (room.players.length <= 1) return 0;
-  return (room.turn + 1) % room.players.length;
+function renderScore(){
+    const container=document.getElementById("players");
+    container.innerHTML="";
+    playersState.forEach(p=>{
+        container.innerHTML+=`
+        <div style="font-size:22px;color:${p.color}">
+        ${p.name}: ${p.hype} ХАЙП
+        </div>`;
+    });
 }
 
-function emitUpdate(roomCode){
-  const room = rooms[roomCode];
-  if (!room) return;
+function updateTurn(){
+    const currentPlayer = playersState[currentTurn];
+    if (!currentPlayer) return;
 
-  io.to(roomCode).emit("updatePlayers", {
-    players: room.players,
-    turn: room.turn
-  });
+    rollBtn.disabled = currentPlayer.id !== socket.id;
 }
 
-server.listen(process.env.PORT || 3000, () => {
-  console.log("Server started");
-});
+function showDice(value){
+    const rotations = {
+        1: "rotateX(0deg) rotateY(0deg)",
+        2: "rotateX(0deg) rotateY(180deg)",
+        3: "rotateX(0deg) rotateY(-90deg)",
+        4: "rotateX(0deg) rotateY(90deg)",
+        5: "rotateX(-90deg) rotateY(0deg)",
+        6: "rotateX(90deg) rotateY(0deg)"
+    };
+
+    cube.style.transition = "transform 0.6s ease";
+    cube.style.transform = rotations[value];
+}
