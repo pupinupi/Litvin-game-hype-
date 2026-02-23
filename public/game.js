@@ -34,6 +34,7 @@ const CELL_POSITIONS = [
 ];
 
 let playersState = [];
+let currentRotation = { x:0, y:0 };
 
 function startGame(){
     document.getElementById("rulesModal").classList.remove("show");
@@ -48,15 +49,22 @@ socket.on("updatePlayers", (players)=>{
     renderPlayers();
 });
 
+/* ---------- ГЛАВНЫЙ БРОСОК ---------- */
+
 socket.on("diceRolled", ({dice})=>{
-    animateDice(dice);
+    showDice(dice);
     diceResult.innerText = "Выпало: " + dice;
 });
 
+/* ---------- РИСК ---------- */
+
 socket.on("riskResult", ({dice,result})=>{
-    animateDice(dice);
-    diceResult.innerText = `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
+    showDice(dice);
+    diceResult.innerText =
+        `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
 });
+
+/* ---------- СКАНДАЛ ---------- */
 
 socket.on("scandalCard", ({text})=>{
     document.getElementById("scandalText").innerText = text;
@@ -66,6 +74,8 @@ socket.on("scandalCard", ({text})=>{
 function closeScandal(){
     document.getElementById("scandalModal").style.display = "none";
 }
+
+/* ---------- ОТРИСОВКА ---------- */
 
 function renderPlayers(){
     board.querySelectorAll(".token").forEach(t=>t.remove());
@@ -95,19 +105,25 @@ function renderScore(){
     });
 }
 
-function animateDice(value){
+/* ---------- СИНХРОНИЗИРОВАННЫЙ КУБИК ---------- */
+
+function showDice(value){
+
     const rotations = {
-        1: "rotateX(0deg) rotateY(0deg)",
-        2: "rotateX(-90deg) rotateY(0deg)",
-        3: "rotateX(0deg) rotateY(90deg)",
-        4: "rotateX(0deg) rotateY(-90deg)",
-        5: "rotateX(90deg) rotateY(0deg)",
-        6: "rotateX(180deg) rotateY(0deg)"
+        1: {x:0, y:0},
+        2: {x:-90, y:0},
+        3: {x:0, y:90},
+        4: {x:0, y:-90},
+        5: {x:90, y:0},
+        6: {x:180, y:0}
     };
 
-    cube.style.transform = "rotateX(720deg) rotateY(720deg)";
+    const target = rotations[value];
 
-    setTimeout(()=>{
-        cube.style.transform = rotations[value];
-    },800);
+    // добавляем 360° чтобы был эффект прокрутки
+    currentRotation.x += 360 + target.x;
+    currentRotation.y += 360 + target.y;
+
+    cube.style.transform =
+        `rotateX(${currentRotation.x}deg) rotateY(${currentRotation.y}deg)`;
 }
