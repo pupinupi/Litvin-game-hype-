@@ -102,13 +102,13 @@ function showDice(value){
 
     const rotations = {
         1: "rotateX(0deg) rotateY(0deg)",
-        2: "rotateX(-90deg) rotateY(0deg)",
-        3: "rotateX(0deg) rotateY(90deg)",
-        4: "rotateX(0deg) rotateY(-90deg)",
-        5: "rotateX(90deg) rotateY(0deg)",
-        6: "rotateX(180deg) rotateY(0deg)"
+        2: "rotateX(0deg) rotateY(180deg)",
+        3: "rotateX(0deg) rotateY(-90deg)",
+        4: "rotateX(0deg) rotateY(90deg)",
+        5: "rotateX(-90deg) rotateY(0deg)",
+        6: "rotateX(90deg) rotateY(0deg)"
     };
 
-    cube.style.transition = "transform 0.8s ease";
+    cube.style.transition = "transform 0.6s ease";
     cube.style.transform = rotations[value];
 }
