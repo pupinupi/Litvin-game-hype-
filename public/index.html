@@ -11,23 +11,36 @@
 <input id="name" placeholder="Имя">
 <input id="room" placeholder="Код комнаты">
 
-<select id="color">
-<option value="yellow">Желтая</option>
-<option value="red">Красная</option>
-<option value="blue">Синяя</option>
-<option value="purple">Фиолетовая</option>
-</select>
+<div class="color-picker">
+    <div class="color-option yellow" onclick="selectColor('yellow', this)"></div>
+    <div class="color-option red" onclick="selectColor('red', this)"></div>
+    <div class="color-option blue" onclick="selectColor('blue', this)"></div>
+    <div class="color-option purple" onclick="selectColor('purple', this)"></div>
+</div>
 
 <button onclick="enter()">Войти</button>
 
 <script>
+let selectedColor = null;
+
+function selectColor(color, el){
+    document.querySelectorAll(".color-option").forEach(c=>c.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedColor = color;
+}
+
 function enter(){
     const name=document.getElementById("name").value;
     const room=document.getElementById("room").value;
-    const color=document.getElementById("color").value;
+
+    if(!name || !room || !selectedColor){
+        alert("Заполни все поля и выбери фишку");
+        return;
+    }
+
     localStorage.setItem("name",name);
     localStorage.setItem("room",room);
-    localStorage.setItem("color",color);
+    localStorage.setItem("color",selectedColor);
     window.location="room.html";
 }
 </script>
