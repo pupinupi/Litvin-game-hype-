@@ -9,6 +9,7 @@ socket.emit("joinRoom", { name, roomCode: room, color });
 const board = document.getElementById("board");
 const cube = document.getElementById("cube");
 const diceResult = document.getElementById("diceResult");
+const rollBtn = document.getElementById("rollBtn");
 
 const CELL_POSITIONS = [
   {x:110,y:597},
@@ -34,6 +35,9 @@ const CELL_POSITIONS = [
 ];
 
 let playersState = [];
+let currentTurn = 0;
+
+// ======================
 
 function startGame(){
     document.getElementById("rulesModal").classList.remove("show");
@@ -43,10 +47,19 @@ function roll(){
     socket.emit("rollDice", room);
 }
 
-socket.on("updatePlayers", (players)=>{
-    playersState = players;
+// ======================
+// ПРАВИЛЬНЫЙ updatePlayers
+// ======================
+
+socket.on("updatePlayers", (data)=>{
+    playersState = data.players;
+    currentTurn = data.turn;
+
     renderPlayers();
+    updateTurn();
 });
+
+// ======================
 
 socket.on("diceRolled", ({dice})=>{
     showDice(dice);
@@ -59,8 +72,23 @@ socket.on("riskResult", ({dice,result})=>{
         `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
 });
 
-socket.on("scandalCard", ({text})=>{
-    document.getElementById("scandalText").innerText = text;
+socket.on("scandalCard", (data)=>{
+
+    let message = data.text;
+
+    if (data.value) {
+        message += ` (${data.value} хайпа)`;
+    }
+
+    if (data.all) {
+        message += " — У ВСЕХ ИГРОКОВ!";
+    }
+
+    if (data.skip) {
+        message += " Пропуск хода!";
+    }
+
+    document.getElementById("scandalText").innerText = message;
     document.getElementById("scandalModal").style.display = "flex";
 });
 
@@ -68,14 +96,21 @@ function closeScandal(){
     document.getElementById("scandalModal").style.display = "none";
 }
 
+// ======================
+// ФИШКИ
+// ======================
+
 function renderPlayers(){
+
     board.querySelectorAll(".token").forEach(t=>t.remove());
 
     playersState.forEach(p=>{
         const token = document.createElement("div");
-        token.classList.add("token", p.color);
+        token.classList.add("token");
+        token.style.background = p.color;
 
         const pos = CELL_POSITIONS[p.position];
+
         token.style.left = pos.x + "px";
         token.style.top = pos.y + "px";
         token.id = p.id;
@@ -86,17 +121,52 @@ function renderPlayers(){
     renderScore();
 }
 
+// ======================
+// ХАЙП
+// ======================
+
 function renderScore(){
     const container=document.getElementById("players");
     container.innerHTML="";
+
     playersState.forEach(p=>{
-        container.innerHTML+=`<p style="color:${p.color}">
-        ${p.name}: ${p.hype} хайпа
-        </p>`;
+        container.innerHTML+=`
+        <div style="
+            background:#111;
+            padding:10px 20px;
+            border-radius:10px;
+            margin:5px;
+            font-size:20px;
+            font-weight:bold;
+            color:${p.color};
+        ">
+            ${p.name}: ${p.hype} ХАЙП
+        </div>`;
     });
 }
 
-/* 🎲 Жёстко фиксированный кубик без накоплений */
+// ======================
+// ЧЕЙ ХОД
+// ======================
+
+function updateTurn(){
+
+    const currentPlayer = playersState[currentTurn];
+
+    if (!currentPlayer) return;
+
+    if (currentPlayer.id === socket.id) {
+        rollBtn.disabled = false;
+        rollBtn.style.opacity = "1";
+    } else {
+        rollBtn.disabled = true;
+        rollBtn.style.opacity = "0.5";
+    }
+}
+
+// ======================
+// КУБИК
+// ======================
 
 function showDice(value){
 
