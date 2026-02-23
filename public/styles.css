@@ -6,82 +6,6 @@ body {
     text-align:center;
 }
 
-h1 {
-    margin-top:30px;
-}
-
-input {
-    padding:10px;
-    margin:10px;
-    border-radius:8px;
-    border:none;
-    font-size:16px;
-}
-
-button {
-    padding:12px 20px;
-    font-size:16px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    background:#ff6600;
-    color:white;
-}
-
-.color-picker {
-    display:flex;
-    justify-content:center;
-    gap:20px;
-    margin:20px;
-}
-
-.color-option {
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    cursor:pointer;
-    border:3px solid transparent;
-}
-
-.color-option.selected {
-    border:3px solid white;
-}
-
-.yellow { background:yellow; }
-.red { background:red; }
-.blue { background:blue; }
-.purple { background:purple; }
-
-.dice-container {
-    perspective: 800px;
-    margin: 20px;
-}
-
-.cube {
-    width: 80px;
-    height: 80px;
-    position: relative;
-    transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg);
-    transition: transform 1s;
-    margin:auto;
-}
-
-.face {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    background: white;
-    border: 2px solid black;
-}
-
-.front  { transform: rotateY(0deg) translateZ(40px); }
-.back   { transform: rotateY(180deg) translateZ(40px); }
-.right  { transform: rotateY(90deg) translateZ(40px); }
-.left   { transform: rotateY(-90deg) translateZ(40px); }
-.top    { transform: rotateX(90deg) translateZ(40px); }
-.bottom { transform: rotateX(-90deg) translateZ(40px); }
-
 .board {
     position:relative;
     width:1024px;
@@ -95,7 +19,7 @@ button {
     height:40px;
     border-radius:50%;
     position:absolute;
-    transition: all 0.5s ease;
+    transition: all 0.4s ease;
     border:3px solid white;
     transform:translate(-50%, -50%);
 }
@@ -104,6 +28,109 @@ button {
     box-shadow:0 0 20px white;
 }
 
+/* ===== КУБИК ===== */
+
+.dice-container {
+    perspective:1000px;
+    margin:20px;
+}
+
+.cube {
+    width:90px;
+    height:90px;
+    margin:auto;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform 1s ease;
+}
+
+.face {
+    position:absolute;
+    width:90px;
+    height:90px;
+    background:white;
+    border-radius:10px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:30px;
+    border:2px solid #000;
+}
+
+/* Позиции граней */
+.front  { transform:rotateY(0deg) translateZ(45px); }
+.back   { transform:rotateY(180deg) translateZ(45px); }
+.right  { transform:rotateY(90deg) translateZ(45px); }
+.left   { transform:rotateY(-90deg) translateZ(45px); }
+.top    { transform:rotateX(90deg) translateZ(45px); }
+.bottom { transform:rotateX(-90deg) translateZ(45px); }
+
+/* Точки */
+.dots {
+    width:70%;
+    height:70%;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(3,1fr);
+}
+
+.dots div {
+    width:12px;
+    height:12px;
+    background:black;
+    border-radius:50%;
+    margin:auto;
+}
+
+/* Раскладка точек */
+.one  { grid-template-areas:
+". . ."
+". x ."
+". . ."; }
+
+.two  { grid-template-areas:
+"x . ."
+". . ."
+". . x"; }
+
+.three { grid-template-areas:
+"x . ."
+". x ."
+". . x"; }
+
+.four { grid-template-areas:
+"x . x"
+". . ."
+"x . x"; }
+
+.five { grid-template-areas:
+"x . x"
+". x ."
+"x . x"; }
+
+.six { grid-template-areas:
+"x . x"
+"x . x"
+"x . x"; }
+
+button {
+    padding:12px 20px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#ff6600;
+    color:white;
+}
+
+.diceResult {
+    margin-top:10px;
+    font-size:20px;
+    color:#ffd700;
+}
+
+/* ===== МОДАЛКИ ===== */
+
 .modal {
     display:none;
     position:fixed;
@@ -111,14 +138,24 @@ button {
     left:0;
     width:100%;
     height:100%;
-    background:rgba(0,0,0,0.8);
+    background:rgba(0,0,0,0.85);
     justify-content:center;
     align-items:center;
+    z-index:1000;
+}
+
+.modal.show {
+    display:flex;
 }
 
 .modal-content {
     background:#222;
     padding:30px;
-    border-radius:10px;
-    text-align:center;
+    border-radius:12px;
+    width:80%;
+    max-width:500px;
+}
+
+.modal-content.big {
+    max-width:700px;
 }
