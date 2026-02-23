@@ -74,7 +74,8 @@ io.on("connection", (socket) => {
     };
 
     rooms[roomCode].players.push(player);
-    io.to(roomCode).emit("updatePlayers", rooms[roomCode].players);
+
+    emitRoomUpdate(roomCode);
   });
 
   socket.on("rollDice", (roomCode) => {
@@ -85,10 +86,11 @@ io.on("connection", (socket) => {
     const player = room.players[room.turn];
     if (!player || player.id !== socket.id) return;
 
+    // Пропуск хода
     if (player.skipTurn) {
       player.skipTurn = false;
       nextTurn(room);
-      io.to(roomCode).emit("updatePlayers", room.players);
+      emitRoomUpdate(roomCode);
       return;
     }
 
@@ -99,8 +101,6 @@ io.on("connection", (socket) => {
 
     applyCell(roomCode, room, player);
 
-    io.to(roomCode).emit("updatePlayers", room.players);
-
     if (player.hype >= 100) {
       io.to(roomCode).emit("gameOver", {
         winner: player.name
@@ -109,6 +109,7 @@ io.on("connection", (socket) => {
     }
 
     nextTurn(room);
+    emitRoomUpdate(roomCode);
   });
 
 });
@@ -160,7 +161,7 @@ function applyCell(roomCode, room, player) {
 }
 
 // =====================
-// СКАНДАЛ ЛОГИКА
+// СКАНДАЛ
 // =====================
 
 function applyScandal(roomCode, room, player) {
@@ -189,7 +190,24 @@ function applyScandal(roomCode, room, player) {
   });
 }
 
+// =====================
+// ОБНОВЛЕНИЕ КОМНАТЫ
+// =====================
+
+function emitRoomUpdate(roomCode) {
+  const room = rooms[roomCode];
+  if (!room) return;
+
+  io.to(roomCode).emit("updatePlayers", {
+    players: room.players,
+    turn: room.turn
+  });
+}
+
+// =====================
+
 function nextTurn(room) {
+  if (room.players.length === 0) return;
   room.turn = (room.turn + 1) % room.players.length;
 }
 
