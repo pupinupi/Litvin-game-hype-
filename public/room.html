@@ -17,25 +17,30 @@
 
 <div id="board" class="board" style="background:url('board.jpg')"></div>
 
-<button onclick="roll()">Бросить кубик</button>
-
 <div class="dice-container">
   <div id="cube" class="cube">
-    <div class="face front"></div>
-    <div class="face back"></div>
-    <div class="face right"></div>
-    <div class="face left"></div>
-    <div class="face top"></div>
-    <div class="face bottom"></div>
+    <div class="face front">•</div>
+    <div class="face back">••</div>
+    <div class="face right">•••</div>
+    <div class="face left">••••</div>
+    <div class="face top">•••••</div>
+    <div class="face bottom">••••••</div>
   </div>
 </div>
 
-<button onclick="roll()">Бросить кубик</button>
+<button id="rollBtn" onclick="roll()">Бросить кубик</button>
+
 <div id="players"></div>
 
 </div>
 
-<script src="game.js"></script>
+<div id="scandalModal" class="modal">
+  <div class="modal-content">
+    <h2 id="scandalText"></h2>
+    <button onclick="closeScandal()">Ок</button>
+  </div>
+</div>
 
+<script src="game.js"></script>
 </body>
 </html>
