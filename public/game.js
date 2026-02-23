@@ -34,7 +34,6 @@ const CELL_POSITIONS = [
 ];
 
 let playersState = [];
-let currentRotation = { x:0, y:0 };
 
 function startGame(){
     document.getElementById("rulesModal").classList.remove("show");
@@ -49,22 +48,16 @@ socket.on("updatePlayers", (players)=>{
     renderPlayers();
 });
 
-/* ---------- ГЛАВНЫЙ БРОСОК ---------- */
-
 socket.on("diceRolled", ({dice})=>{
     showDice(dice);
     diceResult.innerText = "Выпало: " + dice;
 });
-
-/* ---------- РИСК ---------- */
 
 socket.on("riskResult", ({dice,result})=>{
     showDice(dice);
     diceResult.innerText =
         `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
 });
-
-/* ---------- СКАНДАЛ ---------- */
 
 socket.on("scandalCard", ({text})=>{
     document.getElementById("scandalText").innerText = text;
@@ -74,8 +67,6 @@ socket.on("scandalCard", ({text})=>{
 function closeScandal(){
     document.getElementById("scandalModal").style.display = "none";
 }
-
-/* ---------- ОТРИСОВКА ---------- */
 
 function renderPlayers(){
     board.querySelectorAll(".token").forEach(t=>t.remove());
@@ -105,30 +96,19 @@ function renderScore(){
     });
 }
 
-/* ---------- СИНХРОНИЗИРОВАННЫЙ КУБИК ---------- */
+/* 🎲 Жёстко фиксированный кубик без накоплений */
 
 function showDice(value){
 
     const rotations = {
-        1: {x:0, y:0},
-        2: {x:-90, y:0},
-        3: {x:0, y:90},
-        4: {x:0, y:-90},
-        5: {x:90, y:0},
-        6: {x:180, y:0}
+        1: "rotateX(0deg) rotateY(0deg)",
+        2: "rotateX(-90deg) rotateY(0deg)",
+        3: "rotateX(0deg) rotateY(90deg)",
+        4: "rotateX(0deg) rotateY(-90deg)",
+        5: "rotateX(90deg) rotateY(0deg)",
+        6: "rotateX(180deg) rotateY(0deg)"
     };
 
-    const target = rotations[value];
-
-    // Сначала делаем быструю анимацию вращения
-    cube.style.transition = "transform 0.7s ease";
-    cube.style.transform =
-        `rotateX(${target.x + 720}deg) rotateY(${target.y + 720}deg)`;
-
-    // Потом фиксируем точный угол
-    setTimeout(()=>{
-        cube.style.transition = "transform 0.2s ease";
-        cube.style.transform =
-            `rotateX(${target.x}deg) rotateY(${target.y}deg)`;
-    },700);
+    cube.style.transition = "transform 0.8s ease";
+    cube.style.transform = rotations[value];
 }
