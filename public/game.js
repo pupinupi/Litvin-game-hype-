@@ -120,10 +120,15 @@ function showDice(value){
 
     const target = rotations[value];
 
-    // добавляем 360° чтобы был эффект прокрутки
-    currentRotation.x += 360 + target.x;
-    currentRotation.y += 360 + target.y;
-
+    // Сначала делаем быструю анимацию вращения
+    cube.style.transition = "transform 0.7s ease";
     cube.style.transform =
-        `rotateX(${currentRotation.x}deg) rotateY(${currentRotation.y}deg)`;
+        `rotateX(${target.x + 720}deg) rotateY(${target.y + 720}deg)`;
+
+    // Потом фиксируем точный угол
+    setTimeout(()=>{
+        cube.style.transition = "transform 0.2s ease";
+        cube.style.transform =
+            `rotateX(${target.x}deg) rotateY(${target.y}deg)`;
+    },700);
 }
