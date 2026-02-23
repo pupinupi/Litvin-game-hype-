@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Комната</title>
+<link rel="stylesheet" href="styles.css">
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<div id="rules">
+<h2>Правила</h2>
+<p>Первый до 100 хайпа побеждает</p>
+<button onclick="startGame()">Начать</button>
+</div>
+
+<div id="game" style="display:none">
+
+<div class="board" id="board" style="background:url('board.jpg')"></div>
+
+<button onclick="roll()">Бросить кубик</button>
+
+<div id="dice"></div>
+<div id="players"></div>
+
+</div>
+
+<script src="game.js"></script>
+
+</body>
+</html>
