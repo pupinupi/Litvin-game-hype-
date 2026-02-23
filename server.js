@@ -8,165 +8,152 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let rooms = {};
+const rooms = {};
 
-const cells = [
-  {type:"start"},
-  {type:"hype", value:3},
-  {type:"hype", value:2},
-  {type:"scandal"},
-  {type:"risk"},
-  {type:"hype", value:2},
-  {type:"scandal"},
-  {type:"hype", value:3},
-  {type:"hype", value:5},
-  {type:"zero"},
-  {type:"jail"},
-  {type:"hype", value:3},
-  {type:"risk"},
-  {type:"hype", value:3},
-  {type:"skip"},
-  {type:"hype", value:2},
-  {type:"scandal"},
-  {type:"hype", value:8},
-  {type:"zero"},
-  {type:"hype", value:4}
-];
+io.on("connection", (socket) => {
 
-const scandalCards = [
-  {text:"🔥 Перегрел аудиторию -1", hype:-1},
-  {text:"🫣 Громкий заголовок -2", hype:-2},
-  {text:"😱 Это монтаж -3", hype:-3},
-  {text:"#️⃣ Меня взломали -3 всем", hype:-3, all:true},
-  {text:"😮 Подписчики в шоке -4", hype:-4},
-  {text:"🤫 Удаляй пока не поздно -5", hype:-5},
-  {text:"🙄 Это контент -5 и пропуск", hype:-5, skip:true}
-];
+    socket.on("joinRoom", ({ name, roomCode, color }) => {
+        if (!rooms[roomCode]) {
+            rooms[roomCode] = {
+                players: [],
+                turn: 0
+            };
+        }
 
-io.on("connection", socket => {
+        const room = rooms[roomCode];
 
-  socket.on("join", ({name, room, color}) => {
+        if (room.players.length >= 4) return;
 
-    socket.join(room);
+        const player = {
+            id: socket.id,
+            name,
+            color,
+            position: 0,
+            hype: 0,
+            skip: false,
+            lastGain: 0
+        };
 
-    if(!rooms[room]){
-      rooms[room] = {players:[], turn:0};
-    }
+        room.players.push(player);
+        socket.join(roomCode);
 
-    if(rooms[room].players.length >= 4) return;
-
-    rooms[room].players.push({
-      id:socket.id,
-      name,
-      color,
-      position:0,
-      hype:0,
-      skip:false,
-      lastDice:0,
-      message:"",
-      lastGain:0
+        io.to(roomCode).emit("updatePlayers", room.players);
     });
 
-    socket.emit("myId", socket.id);
-    io.to(room).emit("state", rooms[room]);
-  });
+    socket.on("rollDice", (roomCode) => {
+        const room = rooms[roomCode];
+        if (!room) return;
 
-  socket.on("roll", (room) => {
+        const player = room.players[room.turn];
+        if (!player || player.id !== socket.id) return;
 
-    const game = rooms[room];
-    if(!game) return;
+        if (player.skip) {
+            player.skip = false;
+            nextTurn(room, roomCode);
+            return;
+        }
 
-    const player = game.players[game.turn];
-    if(!player || player.id !== socket.id) return;
+        const dice = Math.floor(Math.random() * 6) + 1;
 
-    if(player.skip){
-      player.skip=false;
-      player.message="Пропуск хода";
-      nextTurn(game);
-      io.to(room).emit("state", game);
-      return;
-    }
+        player.position = (player.position + dice) % 20;
 
-    const dice = Math.floor(Math.random()*6)+1;
-    player.lastDice = dice;
-    player.message="";
-    player.lastGain=0;
+        io.to(roomCode).emit("diceRolled", { dice, playerId: player.id });
 
-    player.position = (player.position + dice) % 20;
-
-    applyCell(game, player);
-
-    if(player.lastGain > 8){
-      player.skip=true;
-      player.message += " | Перегрев! Пропуск";
-    }
-
-    game.players.forEach(p=>{
-      if(p.hype < 0) p.hype=0;
+        handleCell(player, room, roomCode);
     });
 
-    if(player.hype >= 100){
-      io.to(room).emit("winner", player);
-      delete rooms[room];
-      return;
-    }
-
-    nextTurn(game);
-    io.to(room).emit("state", game);
-  });
+    socket.on("disconnect", () => {
+        for (let code in rooms) {
+            rooms[code].players = rooms[code].players.filter(p => p.id !== socket.id);
+        }
+    });
 
 });
 
-function applyCell(game, player){
-  const cell = cells[player.position];
+function handleCell(player, room, roomCode) {
+    const cell = player.position + 1;
 
-  if(cell.type==="hype"){
-    player.hype += cell.value;
-    player.lastGain = cell.value;
-    player.message="+"+cell.value+" хайп";
-  }
+    let gain = 0;
 
-  if(cell.type==="zero"){
-    player.hype=0;
-    player.message="Минус весь хайп";
-  }
+    const plusCells = {
+        2:3,3:2,6:2,8:3,9:5,12:3,14:3,16:2,18:8,20:4
+    };
 
-  if(cell.type==="jail"){
-    player.hype=Math.floor(player.hype/2);
-    player.skip=true;
-    player.message="-50% и пропуск";
-  }
-
-  if(cell.type==="skip"){
-    player.skip=true;
-    player.message="Пропуск хода";
-  }
-
-  if(cell.type==="risk"){
-    const r=Math.floor(Math.random()*6)+1;
-    if(r<=3){
-      player.hype-=5;
-      player.message="Риск -5";
-    } else {
-      player.hype+=5;
-      player.message="Риск +5";
+    if (plusCells[cell]) {
+        gain = plusCells[cell];
+        player.hype += gain;
     }
-  }
 
-  if(cell.type==="scandal"){
-    const card=scandalCards[Math.floor(Math.random()*scandalCards.length)];
-    if(card.all){
-      game.players.forEach(p=>p.hype+=card.hype);
-    } else {
-      player.hype+=card.hype;
+    if (cell === 4 || cell === 7 || cell === 17) {
+        triggerScandal(player, roomCode);
+        return;
     }
-    if(card.skip) player.skip=true;
-    player.message=card.text;
-  }
+
+    if (cell === 5 || cell === 13) {
+        triggerRisk(player, roomCode);
+        return;
+    }
+
+    if (cell === 10 || cell === 19) {
+        player.hype = 0;
+    }
+
+    if (cell === 11) {
+        player.hype = Math.floor(player.hype / 2);
+        player.skip = true;
+    }
+
+    if (cell === 15) {
+        player.skip = true;
+    }
+
+    if (player.hype < 0) player.hype = 0;
+
+    if (gain > 8) {
+        player.skip = true;
+    }
+
+    if (player.hype >= 100) {
+        io.to(roomCode).emit("winner", player.name);
+        return;
+    }
+
+    io.to(roomCode).emit("updatePlayers", room.players);
+    nextTurn(room, roomCode);
 }
 
-function nextTurn(game){
-  game.turn=(game.turn+1)%game.players.length;
+function triggerScandal(player, roomCode) {
+    const scandals = [
+        { text:"Перегрел аудиторию🔥 -1", value:-1 },
+        { text:"Громкий заголовок🫣 -2", value:-2 },
+        { text:"Это монтаж 😱 -3", value:-3 },
+        { text:"Меня взломали #️⃣ -3 всем", value:-3, all:true },
+        { text:"Подписчики в шоке 😮 -4", value:-4 },
+        { text:"Удаляй пока не поздно🤫 -5", value:-5 },
+        { text:"Это контент🙄 -5 и пропуск", value:-5, skip:true }
+    ];
+
+    const card = scandals[Math.floor(Math.random() * scandals.length)];
+
+    io.to(roomCode).emit("scandalCard", card);
 }
 
-server.listen(3000);
+function triggerRisk(player, roomCode) {
+    const dice = Math.floor(Math.random() * 6) + 1;
+    let result = 0;
+
+    if (dice <= 3) result = -5;
+    else result = +5;
+
+    player.hype += result;
+    if (player.hype < 0) player.hype = 0;
+
+    io.to(roomCode).emit("riskResult", { dice, result, playerId: player.id });
+}
+
+function nextTurn(room, roomCode) {
+    room.turn = (room.turn + 1) % room.players.length;
+    io.to(roomCode).emit("turnChanged", room.turn);
+}
+
+server.listen(3000, () => console.log("Server running"));
