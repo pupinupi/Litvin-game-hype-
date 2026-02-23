@@ -10,37 +10,49 @@ app.use(express.static("public"));
 
 const rooms = {};
 
-// ===================
-// КАРТА ПОЛЯ
-// ===================
+// =====================
+// ПОЛЕ
+// =====================
 
 const BOARD = [
-  { type: "start" },           // 0
-  { type: "plus", value: 2 },  // 1
-  { type: "plus", value: 3 },  // 2
-  { type: "plus", value: 4 },  // 3
-  { type: "block" },           // 4
+  { type: "start" },
+  { type: "plus", value: 2 },
+  { type: "plus", value: 3 },
+  { type: "plus", value: 4 },
+  { type: "block" },
 
-  { type: "plus", value: 8 },  // 5
-  { type: "scandal" },         // 6
-  { type: "plus", value: 2 },  // 7
-  { type: "court" },           // 8
-  { type: "plus", value: 3 },  // 9
-  { type: "risk" },            // 10
+  { type: "plus", value: 8 },
+  { type: "scandal" },
+  { type: "plus", value: 2 },
+  { type: "court" },
+  { type: "plus", value: 3 },
+  { type: "risk" },
 
-  { type: "plus", value: 3 },  // 11
-  { type: "jail" },            // 12
-  { type: "block" },           // 13
-  { type: "plus", value: 5 },  // 14
+  { type: "plus", value: 3 },
+  { type: "jail" },
+  { type: "block" },
+  { type: "plus", value: 5 },
 
-  { type: "plus", value: 3 },  // 15
-  { type: "scandal" },         // 16
-  { type: "plus", value: 2 },  // 17
-  { type: "risk" },            // 18
-  { type: "scandal" }          // 19
+  { type: "plus", value: 3 },
+  { type: "scandal" },
+  { type: "plus", value: 2 },
+  { type: "risk" },
+  { type: "scandal" }
 ];
 
-// ===================
+// =====================
+// СКАНДАЛ-КАРТЫ
+// =====================
+
+const SCANDALS = [
+  { text: "Перегрел аудиторию 🔥", value: -1 },
+  { text: "Громкий заголовок 🫣", value: -2 },
+  { text: "Это монтаж 😱", value: -3 },
+  { text: "Меня взломали #️⃣", value: -3, all: true },
+  { text: "Подписчики в шоке 😮", value: -4 },
+  { text: "Удаляй пока не поздно 🤫", value: -5 },
+  { text: "Это контент, вы не понимаете 🙄", value: -5, skip: true }
+];
 
 io.on("connection", (socket) => {
 
@@ -49,10 +61,7 @@ io.on("connection", (socket) => {
     socket.join(roomCode);
 
     if (!rooms[roomCode]) {
-      rooms[roomCode] = {
-        players: [],
-        turn: 0
-      };
+      rooms[roomCode] = { players: [], turn: 0 };
     }
 
     const player = {
@@ -74,8 +83,7 @@ io.on("connection", (socket) => {
     if (!room) return;
 
     const player = room.players[room.turn];
-    if (!player) return;
-    if (player.id !== socket.id) return;
+    if (!player || player.id !== socket.id) return;
 
     if (player.skipTurn) {
       player.skipTurn = false;
@@ -89,20 +97,27 @@ io.on("connection", (socket) => {
 
     player.position = (player.position + dice) % BOARD.length;
 
-    applyCellEffect(roomCode, player, dice);
+    applyCell(roomCode, room, player);
 
     io.to(roomCode).emit("updatePlayers", room.players);
+
+    if (player.hype >= 100) {
+      io.to(roomCode).emit("gameOver", {
+        winner: player.name
+      });
+      return;
+    }
 
     nextTurn(room);
   });
 
 });
 
-// ===================
+// =====================
 // ЛОГИКА КЛЕТОК
-// ===================
+// =====================
 
-function applyCellEffect(roomCode, player, dice) {
+function applyCell(roomCode, room, player) {
 
   const cell = BOARD[player.position];
 
@@ -112,46 +127,66 @@ function applyCellEffect(roomCode, player, dice) {
       player.hype += cell.value;
       break;
 
-    case "scandal":
-      player.hype -= 5;
-      io.to(roomCode).emit("scandalCard", {
-        text: "Скандал! -5 хайпа"
-      });
-      break;
-
     case "risk":
-      const result = dice <= 3 ? -5 : 5;
+      const riskDice = Math.floor(Math.random() * 6) + 1;
+      const result = riskDice >= 4 ? 5 : -5;
       player.hype += result;
+
       io.to(roomCode).emit("riskResult", {
-        dice,
+        dice: riskDice,
         result
       });
       break;
 
+    case "scandal":
+      applyScandal(roomCode, room, player);
+      break;
+
     case "block":
       player.skipTurn = true;
-      io.to(roomCode).emit("cellMessage", {
-        text: "Блокировка канала! Пропуск хода"
-      });
       break;
 
     case "jail":
       player.hype = Math.floor(player.hype / 2);
       player.skipTurn = true;
-      io.to(roomCode).emit("cellMessage", {
-        text: "Тюрьма! Потеря половины хайпа"
-      });
       break;
 
     case "court":
       player.skipTurn = true;
-      io.to(roomCode).emit("cellMessage", {
-        text: "Суд! Пропуск хода"
-      });
       break;
   }
 
   if (player.hype < 0) player.hype = 0;
+}
+
+// =====================
+// СКАНДАЛ ЛОГИКА
+// =====================
+
+function applyScandal(roomCode, room, player) {
+
+  const randomIndex = Math.floor(Math.random() * SCANDALS.length);
+  const scandal = SCANDALS[randomIndex];
+
+  if (scandal.all) {
+    room.players.forEach(p => {
+      p.hype += scandal.value;
+      if (p.hype < 0) p.hype = 0;
+    });
+  } else {
+    player.hype += scandal.value;
+  }
+
+  if (scandal.skip) {
+    player.skipTurn = true;
+  }
+
+  io.to(roomCode).emit("scandalCard", {
+    text: scandal.text,
+    value: scandal.value,
+    all: scandal.all || false,
+    skip: scandal.skip || false
+  });
 }
 
 function nextTurn(room) {
