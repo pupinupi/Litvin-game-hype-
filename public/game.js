@@ -77,3 +77,22 @@ function highlightActive(turn){
         if(el) el.classList.add("active");
     }
 }
+
+function animateDice(value){
+    const cube = document.getElementById("cube");
+
+    const rotations = {
+        1: "rotateX(0deg) rotateY(0deg)",
+        2: "rotateX(-90deg) rotateY(0deg)",
+        3: "rotateX(0deg) rotateY(90deg)",
+        4: "rotateX(0deg) rotateY(-90deg)",
+        5: "rotateX(90deg) rotateY(0deg)",
+        6: "rotateX(180deg) rotateY(0deg)"
+    };
+
+    cube.style.transform = "rotateX(720deg) rotateY(720deg)";
+
+    setTimeout(()=>{
+        cube.style.transform = rotations[value];
+    },1000);
+}
