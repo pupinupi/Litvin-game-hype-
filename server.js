@@ -46,7 +46,8 @@ io.on("connection", (socket) => {
     if (!room) return;
 
     const currentPlayer = room.players[room.turn];
-    if (!currentPlayer || currentPlayer.id !== socket.id) return;
+    if (!currentPlayer) return;
+    if (currentPlayer.id !== socket.id) return;
 
     if (currentPlayer.skipTurn) {
       currentPlayer.skipTurn = false;
@@ -56,14 +57,12 @@ io.on("connection", (socket) => {
 
     const dice = Math.floor(Math.random() * 6) + 1;
 
-    // отправляем бросок
     io.to(roomCode).emit("diceRolled", { dice });
 
-    // двигаем игрока
     currentPlayer.position =
       (currentPlayer.position + dice) % 20;
 
-    handleCell(room, roomCode, currentPlayer, dice);
+    handleCell(roomCode, currentPlayer, dice);
 
     io.to(roomCode).emit("updatePlayers", room.players);
 
@@ -72,29 +71,29 @@ io.on("connection", (socket) => {
 
 });
 
-function handleCell(room, roomCode, player, dice) {
+function handleCell(roomCode, player, dice) {
 
   const CELL_TYPES = [
-    "start",      // 0
-    "normal",     // 1
-    "normal",     // 2
-    "scandal",    // 3
-    "normal",     // 4
-    "risk",       // 5
-    "normal",     // 6
-    "jail",       // 7
-    "normal",     // 8
-    "scandal",    // 9
-    "normal",     // 10
-    "normal",     // 11
-    "court",      // 12
-    "normal",     // 13
-    "risk",       // 14
-    "normal",     // 15
-    "normal",     // 16
-    "normal",     // 17
-    "normal",     // 18
-    "normal"      // 19
+    "start",
+    "normal",
+    "normal",
+    "scandal",
+    "normal",
+    "risk",
+    "normal",
+    "jail",
+    "normal",
+    "scandal",
+    "normal",
+    "normal",
+    "court",
+    "normal",
+    "risk",
+    "normal",
+    "normal",
+    "normal",
+    "normal",
+    "normal"
   ];
 
   const cellType = CELL_TYPES[player.position];
@@ -132,54 +131,6 @@ function handleCell(room, roomCode, player, dice) {
     case "normal":
       player.hype += 2;
       break;
-
-    default:
-      break;
-  }
-
-  if (player.hype < 0) player.hype = 0;
-}
-
-  // Скандал
-  if (cell === 3 || cell === 9) {
-    const card =
-      scandalCards[Math.floor(Math.random() * scandalCards.length)];
-
-    player.hype -= 5;
-
-    io.to(roomCode).emit("scandalCard", { text: card });
-  }
-
-  // Риск (используем тот же dice!)
-  if (cell === 5 || cell === 14) {
-
-    if (dice <= 3) {
-      player.hype -= 5;
-    } else {
-      player.hype += 5;
-    }
-
-    io.to(roomCode).emit("riskResult", {
-      dice,
-      result: dice <= 3 ? -5 : 5
-    });
-  }
-
-  // Тюрьма
-  if (cell === 7) {
-    player.hype = Math.floor(player.hype / 2);
-    player.skipTurn = true;
-  }
-
-  // Суд
-  if (cell === 12) {
-    player.skipTurn = true;
-  }
-
-  // Обычные клетки
-  if (cell !== 3 && cell !== 5 && cell !== 7 &&
-      cell !== 9 && cell !== 12 && cell !== 14) {
-    player.hype += 2;
   }
 
   if (player.hype < 0) player.hype = 0;
