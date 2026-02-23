@@ -1,184 +1,181 @@
-const socket = io();
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
-const name = localStorage.getItem("name");
-const room = localStorage.getItem("room");
-const color = localStorage.getItem("color");
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-socket.emit("joinRoom", { name, roomCode: room, color });
+app.use(express.static("public"));
 
-const board = document.getElementById("board");
-const cube = document.getElementById("cube");
-const diceResult = document.getElementById("diceResult");
-const rollBtn = document.getElementById("rollBtn");
+const rooms = {};
 
-const CELL_POSITIONS = [
-  {x:110,y:597},
-  {x:99,y:450},
-  {x:80,y:345},
-  {x:99,y:232},
-  {x:99,y:133},
-  {x:218,y:97},
-  {x:348,y:91},
-  {x:500,y:88},
-  {x:624,y:102},
-  {x:762,y:91},
-  {x:895,y:130},
-  {x:912,y:204},
-  {x:912,y:337},
-  {x:909,y:425},
-  {x:901,y:580},
-  {x:771,y:588},
-  {x:641,y:588},
-  {x:483,y:594},
-  {x:331,y:586},
-  {x:218,y:594}
+const BOARD = [
+  { type: "start" },
+  { type: "plus", value: 2 },
+  { type: "plus", value: 3 },
+  { type: "plus", value: 4 },
+  { type: "block" },
+
+  { type: "plus", value: 8 },
+  { type: "scandal" },
+  { type: "plus", value: 2 },
+  { type: "court" },
+  { type: "plus", value: 3 },
+  { type: "risk" },
+
+  { type: "plus", value: 3 },
+  { type: "jail" },
+  { type: "block" },
+  { type: "plus", value: 5 },
+
+  { type: "plus", value: 3 },
+  { type: "scandal" },
+  { type: "plus", value: 2 },
+  { type: "risk" },
+  { type: "scandal" }
 ];
 
-let playersState = [];
-let currentTurn = 0;
+const SCANDALS = [
+  { text: "Перегрел аудиторию 🔥", value: -1 },
+  { text: "Громкий заголовок 🫣", value: -2 },
+  { text: "Это монтаж 😱", value: -3 },
+  { text: "Меня взломали #️⃣", value: -3, all: true },
+  { text: "Подписчики в шоке 😮", value: -4 },
+  { text: "Удаляй пока не поздно 🤫", value: -5 },
+  { text: "Это контент, вы не понимаете 🙄", value: -5, skip: true }
+];
 
-// ======================
+io.on("connection", (socket) => {
 
-function startGame(){
-    document.getElementById("rulesModal").classList.remove("show");
-}
+  socket.on("joinRoom", ({ name, roomCode, color }) => {
 
-function roll(){
-    socket.emit("rollDice", room);
-}
+    socket.join(roomCode);
 
-// ======================
-// ПРАВИЛЬНЫЙ updatePlayers
-// ======================
-
-socket.on("updatePlayers", (data)=>{
-    playersState = data.players;
-    currentTurn = data.turn;
-
-    renderPlayers();
-    updateTurn();
-});
-
-// ======================
-
-socket.on("diceRolled", ({dice})=>{
-    showDice(dice);
-    diceResult.innerText = "Выпало: " + dice;
-});
-
-socket.on("riskResult", ({dice,result})=>{
-    showDice(dice);
-    diceResult.innerText =
-        `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
-});
-
-socket.on("scandalCard", (data)=>{
-
-    let message = data.text;
-
-    if (data.value) {
-        message += ` (${data.value} хайпа)`;
+    if (!rooms[roomCode]) {
+      rooms[roomCode] = { players: [], turn: 0 };
     }
 
-    if (data.all) {
-        message += " — У ВСЕХ ИГРОКОВ!";
-    }
-
-    if (data.skip) {
-        message += " Пропуск хода!";
-    }
-
-    document.getElementById("scandalText").innerText = message;
-    document.getElementById("scandalModal").style.display = "flex";
-});
-
-function closeScandal(){
-    document.getElementById("scandalModal").style.display = "none";
-}
-
-// ======================
-// ФИШКИ
-// ======================
-
-function renderPlayers(){
-
-    board.querySelectorAll(".token").forEach(t=>t.remove());
-
-    playersState.forEach(p=>{
-        const token = document.createElement("div");
-        token.classList.add("token");
-        token.style.background = p.color;
-
-        const pos = CELL_POSITIONS[p.position];
-
-        token.style.left = pos.x + "px";
-        token.style.top = pos.y + "px";
-        token.id = p.id;
-
-        board.appendChild(token);
+    rooms[roomCode].players.push({
+      id: socket.id,
+      name,
+      color,
+      position: 0,
+      hype: 0,
+      skipTurn: false
     });
 
-    renderScore();
-}
+    emitUpdate(roomCode);
+  });
 
-// ======================
-// ХАЙП
-// ======================
+  socket.on("rollDice", (roomCode) => {
 
-function renderScore(){
-    const container=document.getElementById("players");
-    container.innerHTML="";
+    const room = rooms[roomCode];
+    if (!room) return;
 
-    playersState.forEach(p=>{
-        container.innerHTML+=`
-        <div style="
-            background:#111;
-            padding:10px 20px;
-            border-radius:10px;
-            margin:5px;
-            font-size:20px;
-            font-weight:bold;
-            color:${p.color};
-        ">
-            ${p.name}: ${p.hype} ХАЙП
-        </div>`;
-    });
-}
+    const player = room.players[room.turn];
+    if (!player || player.id !== socket.id) return;
 
-// ======================
-// ЧЕЙ ХОД
-// ======================
-
-function updateTurn(){
-
-    const currentPlayer = playersState[currentTurn];
-
-    if (!currentPlayer) return;
-
-    if (currentPlayer.id === socket.id) {
-        rollBtn.disabled = false;
-        rollBtn.style.opacity = "1";
-    } else {
-        rollBtn.disabled = true;
-        rollBtn.style.opacity = "0.5";
+    // Пропуск
+    if (player.skipTurn) {
+      player.skipTurn = false;
+      room.turn = getNextTurn(room);
+      emitUpdate(roomCode);
+      return;
     }
+
+    const dice = Math.floor(Math.random() * 6) + 1;
+    io.to(roomCode).emit("diceRolled", { dice });
+
+    player.position = (player.position + dice) % BOARD.length;
+
+    applyCell(roomCode, room, player);
+
+    if (player.hype >= 100) {
+      io.to(roomCode).emit("gameOver", { winner: player.name });
+      return;
+    }
+
+    room.turn = getNextTurn(room);
+    emitUpdate(roomCode);
+  });
+
+});
+
+// ========================
+
+function applyCell(roomCode, room, player) {
+
+  const cell = BOARD[player.position];
+
+  switch(cell.type){
+
+    case "plus":
+      player.hype += cell.value;
+      break;
+
+    case "risk":
+      const riskDice = Math.floor(Math.random() * 6) + 1;
+      const result = riskDice >= 4 ? 5 : -5;
+      player.hype += result;
+
+      io.to(roomCode).emit("riskResult", {
+        dice: riskDice,
+        result
+      });
+      break;
+
+    case "scandal":
+      const scandal = SCANDALS[Math.floor(Math.random()*SCANDALS.length)];
+
+      if (scandal.all) {
+        room.players.forEach(p=>{
+          p.hype += scandal.value;
+          if (p.hype < 0) p.hype = 0;
+        });
+      } else {
+        player.hype += scandal.value;
+      }
+
+      if (scandal.skip) {
+        player.skipTurn = true;
+      }
+
+      io.to(roomCode).emit("scandalCard", scandal);
+      break;
+
+    case "block":
+      player.skipTurn = true;
+      break;
+
+    case "jail":
+      player.hype = Math.floor(player.hype / 2);
+      player.skipTurn = true;
+      break;
+
+    case "court":
+      player.skipTurn = true;
+      break;
+  }
+
+  if (player.hype < 0) player.hype = 0;
 }
 
-// ======================
-// КУБИК
-// ======================
-
-function showDice(value){
-
-    const rotations = {
-        1: "rotateX(0deg) rotateY(0deg)",
-        2: "rotateX(0deg) rotateY(180deg)",
-        3: "rotateX(0deg) rotateY(-90deg)",
-        4: "rotateX(0deg) rotateY(90deg)",
-        5: "rotateX(-90deg) rotateY(0deg)",
-        6: "rotateX(90deg) rotateY(0deg)"
-    };
-
-    cube.style.transition = "transform 0.6s ease";
-    cube.style.transform = rotations[value];
+function getNextTurn(room){
+  if (room.players.length <= 1) return 0;
+  return (room.turn + 1) % room.players.length;
 }
+
+function emitUpdate(roomCode){
+  const room = rooms[roomCode];
+  if (!room) return;
+
+  io.to(roomCode).emit("updatePlayers", {
+    players: room.players,
+    turn: room.turn
+  });
+}
+
+server.listen(process.env.PORT || 3000, () => {
+  console.log("Server started");
+});
