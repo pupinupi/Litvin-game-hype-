@@ -7,56 +7,81 @@
 </head>
 <body>
 
-<!-- ===== ПРАВИЛА ===== -->
+<!-- ПРАВИЛА -->
 <div id="rulesModal" class="modal show">
   <div class="modal-content big">
     <h2>ЛИТВИН: ПУТЬ К ХАЙПУ</h2>
 
-    <p><b>Цель игры:</b> первым набрать 100 хайпа.</p>
+    <p><b>Цель:</b> первым набрать 100 хайпа.</p>
 
-    <hr>
-
-    <p><b>Типы клеток:</b></p>
-
-    <p>🟢 <b>+ Хайп</b> — получаете указанное количество хайпа.</p>
-    <p>🔥 <b>Скандал</b> — вытягивается карточка со штрафом.</p>
-    <p>⚡ <b>Риск</b> — автоматический переброс кубика:<br>
-       1–3 → −5 хайпа<br>
-       4–6 → +5 хайпа</p>
-    <p>🚔 <b>Тюрьма</b> — теряете половину хайпа (округление вниз) и пропускаете ход.</p>
-    <p>⚖ <b>Суд</b> — пропускаете следующий ход.</p>
-
-    <p>🔥 Если за один ход получено более 8 хайпа — перегрев, пропуск хода.</p>
+    <p><b>Клетки:</b></p>
+    <p>🟢 +Хайп — получаете очки.</p>
+    <p>🔥 Скандал — штраф.</p>
+    <p>⚡ Риск — 1–3: −5, 4–6: +5.</p>
+    <p>🚔 Тюрьма — половина хайпа и пропуск.</p>
+    <p>⚖ Суд — пропуск хода.</p>
 
     <button onclick="startGame()">Начать игру</button>
   </div>
 </div>
 
-<!-- ===== ИГРА ===== -->
+<!-- ИГРА -->
 <div id="game">
 
   <div id="board" class="board" style="background:url('board.jpg')"></div>
 
   <div class="dice-container">
     <div id="cube" class="cube">
-      <div class="face front"><div class="dots one"></div></div>
-      <div class="face back"><div class="dots two"></div></div>
-      <div class="face right"><div class="dots three"></div></div>
-      <div class="face left"><div class="dots four"></div></div>
-      <div class="face top"><div class="dots five"></div></div>
-      <div class="face bottom"><div class="dots six"></div></div>
+
+      <div class="face front">
+        <div class="dot center"></div>
+      </div>
+
+      <div class="face back">
+        <div class="dot top-left"></div>
+        <div class="dot bottom-right"></div>
+      </div>
+
+      <div class="face right">
+        <div class="dot top-left"></div>
+        <div class="dot center"></div>
+        <div class="dot bottom-right"></div>
+      </div>
+
+      <div class="face left">
+        <div class="dot top-left"></div>
+        <div class="dot top-right"></div>
+        <div class="dot bottom-left"></div>
+        <div class="dot bottom-right"></div>
+      </div>
+
+      <div class="face top">
+        <div class="dot top-left"></div>
+        <div class="dot top-right"></div>
+        <div class="dot center"></div>
+        <div class="dot bottom-left"></div>
+        <div class="dot bottom-right"></div>
+      </div>
+
+      <div class="face bottom">
+        <div class="dot top-left"></div>
+        <div class="dot top-right"></div>
+        <div class="dot mid-left"></div>
+        <div class="dot mid-right"></div>
+        <div class="dot bottom-left"></div>
+        <div class="dot bottom-right"></div>
+      </div>
+
     </div>
   </div>
 
-  <button id="rollBtn" onclick="roll()">Бросить кубик</button>
+  <button onclick="roll()">Бросить кубик</button>
 
   <div id="diceResult" class="diceResult"></div>
-
   <div id="players"></div>
 
 </div>
 
-<!-- ===== СКАНДАЛ ===== -->
 <div id="scandalModal" class="modal">
   <div class="modal-content">
     <h2 id="scandalText"></h2>
