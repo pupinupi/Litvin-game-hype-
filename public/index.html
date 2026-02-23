@@ -1,244 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Литвин. Путь к хайпу</title>
-<script src="/socket.io/socket.io.js"></script>
-
-<style>
-body{
-  margin:0;
-  background:#111;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-}
-
-#board{
-  position:relative;
-  width:1024px;
-  height:1024px;
-  margin:20px auto;
-  background:url("board.jpg");
-  background-size:cover;
-  border:4px solid white;
-}
-
-.token{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  position:absolute;
-  transition:all 0.4s ease;
-  box-shadow:0 0 8px white;
-}
-
-.active{
-  box-shadow:0 0 25px gold;
-}
-
-.colorPick{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  display:inline-block;
-  margin:10px;
-  cursor:pointer;
-  border:3px solid transparent;
-}
-
-.selected{
-  border:3px solid white;
-}
-
-button{
-  padding:10px 20px;
-  margin:10px;
-  font-size:16px;
-  cursor:pointer;
-}
-
-.modal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.85);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-.modalBox{
-  background:#222;
-  padding:30px;
-  width:500px;
-  border-radius:10px;
-}
-</style>
+<title>Вход в игру</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- ПРАВИЛА -->
-<div id="rules" class="modal">
-<div class="modalBox">
-<h2>Литвин. Путь к хайпу</h2>
+<h1>Литвин. Путь к хайпу</h1>
 
-<p><b>Цель:</b> первым набрать 100 хайпа.</p>
+<input id="name" placeholder="Имя">
+<input id="room" placeholder="Код комнаты">
 
-<p><b>Обычные клетки:</b> дают указанное количество хайпа.</p>
+<select id="color">
+<option value="yellow">Желтая</option>
+<option value="red">Красная</option>
+<option value="blue">Синяя</option>
+<option value="purple">Фиолетовая</option>
+</select>
 
-<p><b>Скандал:</b> всегда штраф. Может уменьшить хайп или заставить пропустить ход.</p>
-
-<p><b>Риск:</b> 1–3 → −5 хайпа. 4–6 → +5 хайпа.</p>
-
-<p><b>Тюрьма:</b> −50% хайпа и пропуск хода.</p>
-
-<p><b>Суд:</b> пропуск хода.</p>
-
-<p><b>Перегрев:</b> если за один ход получено больше 8 хайпа — пропуск следующего хода.</p>
-
-<button onclick="startGame()">Играть</button>
-</div>
-</div>
-
-<!-- ЛОББИ -->
-<div id="lobby" style="display:none">
-<h2>Вход в комнату</h2>
-
-<input id="playerName" placeholder="Имя"><br><br>
-<input id="roomCode" placeholder="Код комнаты"><br><br>
-
-<h3>Выбери фишку:</h3>
-
-<div>
-<div class="colorPick" style="background:yellow" onclick="selectColor('yellow',this)"></div>
-<div class="colorPick" style="background:red" onclick="selectColor('red',this)"></div>
-<div class="colorPick" style="background:blue" onclick="selectColor('blue',this)"></div>
-<div class="colorPick" style="background:purple" onclick="selectColor('purple',this)"></div>
-</div>
-
-<button onclick="joinRoom()">Войти</button>
-</div>
-
-<!-- ИГРА -->
-<div id="game" style="display:none">
-<h3 id="turnInfo"></h3>
-<h3 id="diceInfo"></h3>
-<h3 id="hypeInfo"></h3>
-<h3 id="actionInfo"></h3>
-
-<div id="board"></div>
-
-<button onclick="rollDice()">Бросить кубик</button>
-</div>
-
-<!-- ОКНО СКАНДАЛ -->
-<div id="scandalModal" class="modal" style="display:none">
-<div class="modalBox">
-<h2 id="scandalText"></h2>
-<button onclick="closeScandal()">ОК</button>
-</div>
-</div>
+<button onclick="enter()">Войти</button>
 
 <script>
-const socket = io();
-let myId = null;
-let room = null;
-let selectedColor = null;
-let gameState = null;
-
-const positions = [
-{x:91,y:583},{x:102,y:450},{x:80,y:345},{x:99,y:232},{x:99,y:133},
-{x:218,y:97},{x:348,y:91},{x:500,y:88},{x:624,y:102},{x:762,y:91},
-{x:895,y:130},{x:912,y:204},{x:912,y:337},{x:909,y:425},{x:901,y:580},
-{x:771,y:588},{x:641,y:588},{x:483,y:594},{x:331,y:586},{x:218,y:594}
-];
-
-function startGame(){
-  rules.style.display="none";
-  lobby.style.display="block";
-}
-
-function selectColor(color,el){
-  selectedColor=color;
-  document.querySelectorAll(".colorPick").forEach(c=>c.classList.remove("selected"));
-  el.classList.add("selected");
-}
-
-function joinRoom(){
-  const name=document.getElementById("playerName").value;
-  const code=document.getElementById("roomCode").value;
-
-  if(!name || !code || !selectedColor){
-    alert("Заполни всё");
-    return;
-  }
-
-  room=code;
-
-  socket.emit("join",{name:name,room:code,color:selectedColor});
-
-  lobby.style.display="none";
-  game.style.display="block";
-}
-
-socket.on("myId",id=>myId=id);
-
-socket.on("state",state=>{
-  gameState=state;
-  render();
-});
-
-socket.on("winner",winner=>{
-  alert("Победил "+winner.name);
-  location.reload();
-});
-
-function rollDice(){
-  if(!gameState) return;
-  if(gameState.players[gameState.turn].id!==myId) return;
-  socket.emit("roll",room);
-}
-
-function render(){
-  board.innerHTML="";
-
-  turnInfo.innerText="Ход: "+gameState.players[gameState.turn].name;
-
-  let hypeText="";
-  gameState.players.forEach(p=>{
-    hypeText+=p.name+": "+p.hype+" | ";
-  });
-  hypeInfo.innerText=hypeText;
-
-  const lastPlayer = gameState.players.find(p=>p.id===myId);
-  if(lastPlayer) actionInfo.innerText=lastPlayer.message;
-
-  gameState.players.forEach(p=>{
-    const token=document.createElement("div");
-    token.className="token";
-    if(p.id===gameState.players[gameState.turn].id){
-      token.classList.add("active");
-    }
-    token.style.background=p.color;
-    token.style.left=positions[p.position].x+"px";
-    token.style.top=positions[p.position].y+"px";
-    board.appendChild(token);
-  });
-
-  const prev = gameState.players[(gameState.turn-1+gameState.players.length)%gameState.players.length];
-  diceInfo.innerText="🎲 "+prev.lastDice;
-
-  if(prev.message && prev.message.includes("🔥")){
-    scandalText.innerText=prev.message;
-    scandalModal.style.display="flex";
-  }
-}
-
-function closeScandal(){
-  scandalModal.style.display="none";
+function enter(){
+    const name=document.getElementById("name").value;
+    const room=document.getElementById("room").value;
+    const color=document.getElementById("color").value;
+    localStorage.setItem("name",name);
+    localStorage.setItem("room",room);
+    localStorage.setItem("color",color);
+    window.location="room.html";
 }
 </script>
 
