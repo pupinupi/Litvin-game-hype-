@@ -1,39 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Комната</title>
+<title>Литвин. Путь к хайпу</title>
 <link rel="stylesheet" href="styles.css">
 <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
-<div id="rules">
-<h2>Правила</h2>
-<p>Первый до 100 хайпа побеждает</p>
-<button onclick="startGame()">Начать</button>
-</div>
+<!-- ===== ПРАВИЛА ===== -->
+<div id="rulesModal" class="modal show">
+  <div class="modal-content big">
+    <h2>ЛИТВИН: ПУТЬ К ХАЙПУ</h2>
 
-<div id="game" style="display:none">
+    <p><b>Цель игры:</b> первым набрать 100 хайпа.</p>
 
-<div id="board" class="board" style="background:url('board.jpg')"></div>
+    <hr>
 
-<div class="dice-container">
-  <div id="cube" class="cube">
-    <div class="face front">•</div>
-    <div class="face back">••</div>
-    <div class="face right">•••</div>
-    <div class="face left">••••</div>
-    <div class="face top">•••••</div>
-    <div class="face bottom">••••••</div>
+    <p><b>Типы клеток:</b></p>
+
+    <p>🟢 <b>+ Хайп</b> — получаете указанное количество хайпа.</p>
+    <p>🔥 <b>Скандал</b> — вытягивается карточка со штрафом.</p>
+    <p>⚡ <b>Риск</b> — автоматический переброс кубика:<br>
+       1–3 → −5 хайпа<br>
+       4–6 → +5 хайпа</p>
+    <p>🚔 <b>Тюрьма</b> — теряете половину хайпа (округление вниз) и пропускаете ход.</p>
+    <p>⚖ <b>Суд</b> — пропускаете следующий ход.</p>
+
+    <p>🔥 Если за один ход получено более 8 хайпа — перегрев, пропуск хода.</p>
+
+    <button onclick="startGame()">Начать игру</button>
   </div>
 </div>
 
-<button id="rollBtn" onclick="roll()">Бросить кубик</button>
+<!-- ===== ИГРА ===== -->
+<div id="game">
 
-<div id="players"></div>
+  <div id="board" class="board" style="background:url('board.jpg')"></div>
+
+  <div class="dice-container">
+    <div id="cube" class="cube">
+      <div class="face front"><div class="dots one"></div></div>
+      <div class="face back"><div class="dots two"></div></div>
+      <div class="face right"><div class="dots three"></div></div>
+      <div class="face left"><div class="dots four"></div></div>
+      <div class="face top"><div class="dots five"></div></div>
+      <div class="face bottom"><div class="dots six"></div></div>
+    </div>
+  </div>
+
+  <button id="rollBtn" onclick="roll()">Бросить кубик</button>
+
+  <div id="diceResult" class="diceResult"></div>
+
+  <div id="players"></div>
 
 </div>
 
+<!-- ===== СКАНДАЛ ===== -->
 <div id="scandalModal" class="modal">
   <div class="modal-content">
     <h2 id="scandalText"></h2>
