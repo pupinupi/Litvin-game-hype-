@@ -1,78 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-<title>Вход в игру</title>
-<link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>HYPE GAME</title>
 <style>
-/* аварийная защита — чтобы кружки точно появились */
-.color-picker{
-    display:flex;
-    justify-content:center;
-    gap:25px;
-    margin:20px 0;
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#ff2e88,#6a00ff);
+  font-family:Arial;
+  color:white;
 }
-.color-option{
-    width:50px;
-    height:50px;
-    border-radius:50%;
-    cursor:pointer;
-    border:4px solid transparent;
+
+.card{
+  background:rgba(0,0,0,0.7);
+  padding:40px;
+  border-radius:20px;
+  text-align:center;
+  width:350px;
 }
-.color-option.selected{
-    border:4px solid white;
+
+input{
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  border:none;
+  border-radius:8px;
 }
-.yellow{ background:yellow; }
-.red{ background:red; }
-.blue{ background:blue; }
-.purple{ background:purple; }
+
+button{
+  padding:12px 25px;
+  background:#ff2e88;
+  border:none;
+  border-radius:8px;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
 </style>
 </head>
 <body>
 
-<h1>ЛИТВИН: ПУТЬ К ХАЙПУ</h1>
-
-<div style="margin-top:50px;">
-
-<input id="name" placeholder="Введите имя">
+<div class="card">
+<h1>🔥 HYPE GAME</h1>
+<input id="name" placeholder="Твоё имя">
 <input id="room" placeholder="Код комнаты">
-
-<h3>Выберите фишку:</h3>
-
-<div class="color-picker">
-    <div class="color-option yellow" onclick="selectColor('yellow', this)"></div>
-    <div class="color-option red" onclick="selectColor('red', this)"></div>
-    <div class="color-option blue" onclick="selectColor('blue', this)"></div>
-    <div class="color-option purple" onclick="selectColor('purple', this)"></div>
-</div>
-
-<button onclick="enter()">Войти</button>
-
+<input id="color" type="color">
+<button onclick="join()">Войти</button>
 </div>
 
 <script>
-let selectedColor = null;
-
-function selectColor(color, el){
-    document.querySelectorAll(".color-option")
-        .forEach(c=>c.classList.remove("selected"));
-    el.classList.add("selected");
-    selectedColor = color;
-}
-
-function enter(){
-    const name=document.getElementById("name").value;
-    const room=document.getElementById("room").value;
-
-    if(!name || !room || !selectedColor){
-        alert("Введите имя, код комнаты и выберите фишку");
-        return;
-    }
-
-    localStorage.setItem("name",name);
-    localStorage.setItem("room",room);
-    localStorage.setItem("color",selectedColor);
-
-    window.location="room.html";
+function join(){
+  localStorage.setItem("name",document.getElementById("name").value);
+  localStorage.setItem("room",document.getElementById("room").value);
+  localStorage.setItem("color",document.getElementById("color").value);
+  window.location.href="game.html";
 }
 </script>
 
