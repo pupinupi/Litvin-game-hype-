@@ -10,32 +10,44 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  background:linear-gradient(135deg,#ff2e88,#6a00ff);
+  background:linear-gradient(180deg,#ff7ad9,#8b00ff);
   font-family:Arial;
-  color:white;
 }
-
 .card{
-  background:rgba(0,0,0,0.7);
+  background:#1c0033;
   padding:40px;
   border-radius:20px;
+  width:320px;
   text-align:center;
-  width:350px;
+  color:white;
 }
-
 input{
   width:100%;
-  padding:10px;
+  padding:12px;
   margin:10px 0;
   border:none;
   border-radius:8px;
 }
-
+.colors{
+  display:flex;
+  justify-content:space-between;
+  margin:15px 0;
+}
+.color{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  cursor:pointer;
+  border:3px solid transparent;
+}
+.selected{
+  border:3px solid white;
+}
 button{
-  padding:12px 25px;
-  background:#ff2e88;
+  padding:12px 30px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
+  background:#ff2e88;
   color:white;
   font-size:16px;
   cursor:pointer;
@@ -45,18 +57,38 @@ button{
 <body>
 
 <div class="card">
-<h1>🔥 HYPE GAME</h1>
+<h2>🔥 HYPE GAME</h2>
 <input id="name" placeholder="Твоё имя">
 <input id="room" placeholder="Код комнаты">
-<input id="color" type="color">
-<button onclick="join()">Войти</button>
+
+<div class="colors">
+  <div class="color" style="background:linear-gradient(45deg,#faff00,#00ff6a)" onclick="selectColor(this)"></div>
+  <div class="color" style="background:linear-gradient(45deg,#3a00ff,#ff00f2)" onclick="selectColor(this)"></div>
+  <div class="color" style="background:linear-gradient(45deg,#ff0000,#0044ff)" onclick="selectColor(this)"></div>
+  <div class="color" style="background:linear-gradient(45deg,#ff7a00,#ff0077)" onclick="selectColor(this)"></div>
+</div>
+
+<button onclick="enter()">Войти</button>
 </div>
 
 <script>
-function join(){
-  localStorage.setItem("name",document.getElementById("name").value);
-  localStorage.setItem("room",document.getElementById("room").value);
-  localStorage.setItem("color",document.getElementById("color").value);
+let chosenColor="";
+
+function selectColor(el){
+  document.querySelectorAll(".color").forEach(c=>c.classList.remove("selected"));
+  el.classList.add("selected");
+  chosenColor = el.style.background;
+}
+
+function enter(){
+  const name=document.getElementById("name").value;
+  const room=document.getElementById("room").value;
+  if(!name||!room||!chosenColor) return alert("Заполни всё");
+
+  localStorage.setItem("name",name);
+  localStorage.setItem("room",room);
+  localStorage.setItem("color",chosenColor);
+
   window.location.href="room.html";
 }
 </script>
