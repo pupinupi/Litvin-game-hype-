@@ -1,14 +1,25 @@
 const socket = io();
 
+/* ====== ДАННЫЕ ИГРОКА ====== */
+
 const name = localStorage.getItem("name");
 const room = localStorage.getItem("room");
 const color = localStorage.getItem("color");
 
-socket.emit("joinRoom", { name, roomCode: room, color });
+socket.emit("joinRoom", {
+    name,
+    roomCode: room,
+    color
+});
+
+/* ====== DOM ====== */
 
 const board = document.getElementById("board");
 const cube = document.getElementById("cube");
 const diceResult = document.getElementById("diceResult");
+const rollBtn = document.getElementById("rollBtn");
+
+/* ====== КООРДИНАТЫ (ТВОИ) ====== */
 
 const CELL_POSITIONS = [
   {x:110,y:597},
@@ -33,64 +44,54 @@ const CELL_POSITIONS = [
   {x:218,y:594}
 ];
 
-let playersState = [];
+let players = [];
 let currentTurn = 0;
 
-/* ============================= */
+/* ====== БРОСОК ====== */
 
 function roll(){
+    if(!room) return;
     socket.emit("rollDice", room);
 }
 
-/* ============================= */
+/* ====== ОБНОВЛЕНИЕ ИГРОКОВ ====== */
 
 socket.on("updatePlayers", (data)=>{
-    playersState = data.players;
+    players = data.players;
     currentTurn = data.turn;
     renderPlayers();
 });
 
-function startGame(){
-    const modal = document.getElementById("rulesModal");
-    modal.classList.remove("show");
-});
-
-/* ===== КУБИК ===== */
+/* ====== КУБИК ====== */
 
 socket.on("diceRolled", ({dice})=>{
-    animateDice(dice);
+    cube.innerText = dice;
     diceResult.innerText = "Выпало: " + dice;
 });
 
-/* ===== РИСК ===== */
+/* ====== РИСК ====== */
 
 socket.on("riskResult", ({dice,result})=>{
-    animateDice(dice);
+    cube.innerText = dice;
     diceResult.innerText =
       `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
 });
 
-/* ===== СКАНДАЛ ===== */
+/* ====== СКАНДАЛ ====== */
 
 socket.on("scandalCard", (card)=>{
     document.getElementById("scandalText").innerText =
-      `${card.text} (${card.value})`;
+        `${card.text} (${card.value})`;
     document.getElementById("scandalModal").style.display = "flex";
 });
 
-function closeScandal(){
-    document.getElementById("scandalModal").style.display = "none";
-}
-
-/* ============================= */
-/* ОТРИСОВКА ФИШЕК */
-/* ============================= */
+/* ====== ОТРИСОВКА ====== */
 
 function renderPlayers(){
 
     board.querySelectorAll(".token").forEach(t=>t.remove());
 
-    playersState.forEach((p,index)=>{
+    players.forEach((p)=>{
 
         const token = document.createElement("div");
         token.classList.add("token");
@@ -107,46 +108,18 @@ function renderPlayers(){
     renderScore();
 }
 
-/* ============================= */
-/* СЧЁТ */
-/* ============================= */
+/* ====== СЧЁТ ====== */
 
 function renderScore(){
     const container = document.getElementById("players");
     container.innerHTML = "";
 
-    playersState.forEach((p,index)=>{
+    players.forEach((p,index)=>{
         container.innerHTML += `
-          <p style="color:${p.color}; font-size:${index===currentTurn?"22px":"16px"}">
+          <div class="playerCard" 
+               style="border:${index===currentTurn?"2px solid #ff2e88":"none"}">
             ${p.name}: ${p.hype} хайпа
-          </p>
+          </div>
         `;
     });
-}
-
-/* ============================= */
-/* ПРАВИЛЬНАЯ АНИМАЦИЯ КУБИКА */
-/* ============================= */
-
-function animateDice(value){
-
-    const rotations = {
-        1: "rotateX(0deg) rotateY(0deg)",
-        2: "rotateX(0deg) rotateY(180deg)",
-        3: "rotateX(0deg) rotateY(-90deg)",
-        4: "rotateX(0deg) rotateY(90deg)",
-        5: "rotateX(-90deg) rotateY(0deg)",
-        6: "rotateX(90deg) rotateY(0deg)"
-    };
-
-    // СБРОС
-    cube.style.transition = "none";
-    cube.style.transform = "rotateX(0deg) rotateY(0deg)";
-
-    // форс перерисовка
-    cube.offsetHeight;
-
-    // АНИМАЦИЯ
-    cube.style.transition = "transform 0.6s ease";
-    cube.style.transform = rotations[value];
 }
