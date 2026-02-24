@@ -4,52 +4,43 @@
 <meta charset="UTF-8">
 <title>HYPE GAME</title>
 <style>
-body{
-  margin:0;
-  background:#0f0f14;
-  font-family:Arial;
-  color:white;
-  text-align:center;
-}
-
-#lobby{
-  margin-top:50px;
-}
-
+body{margin:0;background:#0f0f14;color:white;font-family:Arial;text-align:center}
+#lobby{padding:30px}
+#game{display:none}
+#boardWrapper{display:flex;justify-content:center}
 #board{
   position:relative;
   width:1024px;
   height:1024px;
-  margin:20px auto;
   background:url("/board.jpg") no-repeat center;
-  background-size:1024px 1024px;
-  display:none;
+  background-size:contain;
 }
-
 .token{
   position:absolute;
-  width:32px;
-  height:32px;
+  width:30px;height:30px;
   border-radius:50%;
-  border:3px solid white;
-  transform:translate(-50%, -50%);
-  transition:all .5s ease;
+  transform:translate(-50%,-50%);
+  transition:all .4s ease;
 }
+button{padding:10px 20px;margin:10px;border:none;border-radius:8px;background:#ff2e88;color:white}
 </style>
 </head>
 <body>
 
 <div id="lobby">
-<h2>Ожидание игроков...</h2>
-<div id="lobbyPlayers"></div>
-<button id="startBtn" onclick="startGame()" style="display:none;">Начать игру</button>
+<h2>Комната: <span id="roomCode"></span></h2>
+<div id="playersList"></div>
+<button id="startBtn">Начать игру</button>
 </div>
 
+<div id="game">
+<div id="boardWrapper">
 <div id="board"></div>
-
-<div id="cube" style="font-size:80px;">🎲</div>
-<button id="rollBtn" onclick="roll()">Бросить</button>
-<div id="players"></div>
+</div>
+<div id="cube">🎲</div>
+<button onclick="roll()">Бросить</button>
+<div id="info"></div>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
