@@ -48,14 +48,12 @@ io.on("connection",(socket)=>{
   });
 
   socket.on("startGame",(roomCode)=>{
-    const room = rooms[roomCode];
-    if(!room) return;
+  const room = rooms[roomCode];
+  if(!room) return;
 
-    if(room.players[0].id === socket.id){
-      room.started = true;
-      io.to(roomCode).emit("gameStarted");
-    }
-  });
+  room.started = true;
+  io.to(roomCode).emit("gameStarted");
+});
 
   socket.on("rollDice",(roomCode)=>{
     const room = rooms[roomCode];
