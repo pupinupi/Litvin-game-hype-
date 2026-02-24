@@ -142,3 +142,8 @@ function renderScore(){
     },800);
 }
 
+    socket.on("gameOver", ({winner})=>{
+    document.getElementById("winnerText").innerText =
+      winner + " набрал 100 хайпа!";
+    document.getElementById("winModal").style.display = "flex";
+});
