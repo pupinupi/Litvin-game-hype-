@@ -131,3 +131,13 @@ button {
   text-align: center;
   max-width: 400px;
 }
+
+.playerCard{
+    background:#1b1b25;
+    padding:15px;
+    margin:8px auto;
+    border-radius:12px;
+    width:320px;
+    font-weight:bold;
+    transition:.3s;
+}
