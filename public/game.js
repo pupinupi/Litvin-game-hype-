@@ -1,168 +1,91 @@
 const socket = io();
 
-/* ====== ДАННЫЕ ИГРОКА ====== */
-
 const name = localStorage.getItem("name");
 const room = localStorage.getItem("room");
 const color = localStorage.getItem("color");
 
-socket.emit("joinRoom", {
-    name,
-    roomCode: room,
-    color
-});
-
-/* ====== DOM ====== */
+socket.emit("joinRoom",{name,roomCode:room,color});
 
 const board = document.getElementById("board");
-const cube = document.getElementById("cube");
-const diceResult = document.getElementById("diceResult");
 const rollBtn = document.getElementById("rollBtn");
 
-/* ====== КООРДИНАТЫ ====== */
-
 const CELL_POSITIONS = [
-  {x:110,y:597},
-  {x:99,y:450},
-  {x:80,y:345},
-  {x:99,y:232},
-  {x:99,y:133},
-  {x:218,y:97},
-  {x:348,y:91},
-  {x:500,y:88},
-  {x:624,y:102},
-  {x:762,y:91},
-  {x:895,y:130},
-  {x:912,y:204},
-  {x:912,y:337},
-  {x:909,y:425},
-  {x:901,y:580},
-  {x:771,y:588},
-  {x:641,y:588},
-  {x:483,y:594},
-  {x:331,y:586},
-  {x:218,y:594}
+  {x:110,y:597},{x:99,y:450},{x:80,y:345},{x:99,y:232},{x:99,y:133},
+  {x:218,y:97},{x:348,y:91},{x:500,y:88},{x:624,y:102},{x:762,y:91},
+  {x:895,y:130},{x:912,y:204},{x:912,y:337},{x:909,y:425},{x:901,y:580},
+  {x:771,y:588},{x:641,y:588},{x:483,y:594},{x:331,y:586},{x:218,y:594}
 ];
 
-let players = [];
-let currentTurn = 0;
+let players=[];
+let currentTurn=0;
 
-/* ====== БРОСОК ====== */
+socket.on("lobbyUpdate",(data)=>{
+  const div=document.getElementById("lobbyPlayers");
+  div.innerHTML="";
+  data.players.forEach((p,i)=>{
+    div.innerHTML+=`<p>${p.name}</p>`;
+    if(p.id===socket.id && i===0){
+      document.getElementById("startBtn").style.display="inline-block";
+    }
+  });
+});
+
+function startGame(){
+  socket.emit("startGame",room);
+}
+
+socket.on("gameStarted",()=>{
+  document.getElementById("lobby").style.display="none";
+  board.style.display="block";
+});
+
+socket.on("updatePlayers",(data)=>{
+  players=data.players;
+  currentTurn=data.turn;
+  renderPlayers();
+});
+
+socket.on("diceRolled",({dice})=>{
+  animateMove(dice);
+});
 
 function roll(){
-    if(!room) return;
-    if(rollBtn.disabled) return;
-    rollBtn.disabled = true;
-    socket.emit("rollDice", room);
+  socket.emit("rollDice",room);
 }
-
-/* ====== ОБНОВЛЕНИЕ ИГРОКОВ ====== */
-
-socket.on("updatePlayers", (data)=>{
-    players = data.players;
-    currentTurn = data.turn;
-    renderPlayers();
-});
-
-/* ====== КУБИК ====== */
-
-socket.on("diceRolled", ({dice})=>{
-    animateDice(dice);
-});
-
-/* ====== РИСК ====== */
-
-socket.on("riskResult", ({dice,result})=>{
-    cube.innerText = dice;
-    diceResult.innerText =
-      `Риск! Выпало ${dice}. ${result > 0 ? "+" : ""}${result} хайпа`;
-});
-
-/* ====== СКАНДАЛ ====== */
-
-socket.on("scandalCard", (card)=>{
-    document.getElementById("scandalText").innerText =
-        `${card.text} (${card.value})`;
-    document.getElementById("scandalModal").style.display = "flex";
-});
-
-/* ====== ПОБЕДА ====== */
-
-socket.on("gameOver", ({winner})=>{
-    document.getElementById("winnerText").innerText =
-      winner + " набрал 100 хайпа!";
-    document.getElementById("winModal").style.display = "flex";
-});
-
-/* ====== ОТРИСОВКА ФИШЕК ====== */
 
 function renderPlayers(){
-
-    board.querySelectorAll(".token").forEach(t=>t.remove());
-
-    players.forEach((p)=>{
-
-        const token = document.createElement("div");
-        token.classList.add("token");
-        token.style.background = p.color;
-
-        const pos = CELL_POSITIONS[p.position];
-
-        token.style.left = pos.x + "px";
-        token.style.top = pos.y + "px";
-
-        board.appendChild(token);
-    });
-
-    renderScore();
+  board.querySelectorAll(".token").forEach(t=>t.remove());
+  players.forEach(p=>{
+    const token=document.createElement("div");
+    token.classList.add("token");
+    token.style.background=p.color;
+    const pos=CELL_POSITIONS[p.position];
+    token.style.left=pos.x+"px";
+    token.style.top=pos.y+"px";
+    board.appendChild(token);
+  });
 }
 
-/* ====== СЧЁТ И БЛОК КНОПКИ ====== */
+function animateMove(steps){
+  const me=players.find(p=>p.id===socket.id);
+  if(!me) return;
 
-function renderScore(){
+  let current=me.position-steps;
+  if(current<0) current+=20;
 
-    const container = document.getElementById("players");
-    container.innerHTML = "";
+  let step=0;
 
-    players.forEach((p,index)=>{
-        container.innerHTML += `
-          <div class="playerCard" 
-               style="border:${index===currentTurn?"2px solid #ff2e88":"none"}">
-            ${p.name}: ${p.hype} хайпа
-          </div>
-        `;
-    });
+  const interval=setInterval(()=>{
+    current=(current+1)%20;
+    step++;
 
-    // Активируем кнопку только если твой ход
-    const myPlayer = players.find(p => p.id === socket.id);
+    const token=board.querySelector(".token");
+    const pos=CELL_POSITIONS[current];
+    token.style.left=pos.x+"px";
+    token.style.top=pos.y+"px";
 
-    if(!myPlayer) return;
-
-    if(players[currentTurn]?.id === socket.id){
-        rollBtn.disabled = false;
-    } else {
-        rollBtn.disabled = true;
+    if(step>=steps){
+      clearInterval(interval);
     }
-}
-
-/* ====== АНИМАЦИЯ КУБИКА ====== */
-
-function animateDice(value){
-
-    cube.style.transform = "rotate(0deg)";
-    cube.innerText = "🎲";
-
-    let rotation = 0;
-
-    const interval = setInterval(()=>{
-        rotation += 40;
-        cube.style.transform = `rotate(${rotation}deg)`;
-    },20);
-
-    setTimeout(()=>{
-        clearInterval(interval);
-        cube.style.transform = "rotate(0deg)";
-        cube.innerText = value;
-        diceResult.innerText = "Выпало: " + value;
-    },800);
+  },200);
 }
