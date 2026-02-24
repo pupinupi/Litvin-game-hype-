@@ -48,10 +48,7 @@ socket.on("riskResult", ({dice,result})=>{
 });
 
 socket.on("scandalCard", (data)=>{
-    let message = data.text + ` (${data.value} хайпа)`;
-    if(data.all) message+=" — У ВСЕХ!";
-    if(data.skip) message+=" Пропуск хода!";
-    document.getElementById("scandalText").innerText=message;
+    document.getElementById("scandalText").innerText=data.text;
     document.getElementById("scandalModal").style.display="flex";
 });
 
@@ -68,11 +65,15 @@ function renderPlayers(){
     board.querySelectorAll(".token").forEach(t=>t.remove());
 
     playersState.forEach(p=>{
+        const safePosition = p.position % CELL_POSITIONS.length;
+        const pos = CELL_POSITIONS[safePosition];
+
         const token=document.createElement("div");
         token.classList.add("token");
         token.style.background=p.color;
-        token.style.left=CELL_POSITIONS[p.position].x+"px";
-        token.style.top=CELL_POSITIONS[p.position].y+"px";
+        token.style.left=pos.x+"px";
+        token.style.top=pos.y+"px";
+
         board.appendChild(token);
     });
 
@@ -96,14 +97,9 @@ function updateTurn(){
     rollBtn.disabled=currentPlayer.id!==socket.id;
 }
 
-function showDice(value){
-    const rotations={
-        1:"rotateX(0deg) rotateY(0deg)",
-        2:"rotateX(0deg) rotateY(180deg)",
-        3:"rotateX(0deg) rotateY(-90deg)",
-        4:"rotateX(0deg) rotateY(90deg)",
-        5:"rotateX(-90deg) rotateY(0deg)",
-        6:"rotateX(90deg) rotateY(0deg)"
-    };
-    cube.style.transform=rotations[value];
+function showDice(n){
+    const dice=["⚀","⚁","⚂","⚃","⚄","⚅"];
+    cube.innerText=dice[n-1];
+    cube.style.transform="scale(1.2)";
+    setTimeout(()=>cube.style.transform="scale(1)",200);
 }
