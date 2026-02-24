@@ -1,94 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-<title>Литвин. Путь к хайпу</title>
+<meta charset="UTF-8">
+<title>HYPE GAME</title>
 <link rel="stylesheet" href="styles.css">
-<script src="/socket.io/socket.io.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#0f0f14;
+    color:white;
+    text-align:center;
+}
+
+#board{
+    position:relative;
+    width:1000px;
+    height:700px;
+    margin:20px auto;
+    background:url("/board.jpg") no-repeat center;
+    background-size:contain;
+}
+
+.token{
+    position:absolute;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:3px solid white;
+    box-shadow:0 0 10px rgba(0,0,0,0.6);
+    transition:all .4s ease;
+}
+
+#cube{
+    width:90px;
+    height:90px;
+    margin:20px auto;
+    transform-style:preserve-3d;
+    transition:transform .6s ease;
+}
+
+#rollBtn{
+    padding:15px 35px;
+    font-size:18px;
+    background:#ff2e88;
+    border:none;
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+}
+
+#rollBtn:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+#diceResult{
+    font-size:22px;
+    margin-top:10px;
+}
+
+#players{
+    margin-top:20px;
+    font-size:24px;
+}
+
+.playerCard{
+    background:#1b1b25;
+    margin:8px auto;
+    padding:10px 20px;
+    border-radius:10px;
+    width:300px;
+    font-weight:bold;
+}
+
+#rulesModal, #scandalModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.9);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.modalCard{
+    background:#1c1c28;
+    padding:30px;
+    border-radius:15px;
+    width:350px;
+}
+
+.modalCard button{
+    margin-top:20px;
+    padding:10px 20px;
+    background:#ff2e88;
+    border:none;
+    border-radius:6px;
+    color:white;
+    cursor:pointer;
+}
+</style>
 </head>
+
 <body>
 
-<!-- ПРАВИЛА -->
-<div id="rulesModal" class="modal show">
-  <div class="modal-content big">
-    <h2>ЛИТВИН: ПУТЬ К ХАЙПУ</h2>
-
-    <p><b>Цель:</b> первым набрать 100 хайпа.</p>
-
-    <p><b>Клетки:</b></p>
-    <p>🟢 +Хайп — получаете очки.</p>
-    <p>🔥 Скандал — штраф.</p>
-    <p>⚡ Риск — 1–3: −5, 4–6: +5.</p>
-    <p>🚔 Тюрьма — половина хайпа и пропуск.</p>
-    <p>⚖ Суд — пропуск хода.</p>
-
-    <button onclick="startGame()">Начать игру</button>
-  </div>
-</div>
-
-<!-- ИГРА -->
-<div id="game">
-
-  <div id="board" class="board" style="background:url('board.jpg')"></div>
-
-  <div class="dice-container">
-    <div id="cube" class="cube">
-
-      <div class="face front">
-        <div class="dot center"></div>
-      </div>
-
-      <div class="face back">
-        <div class="dot top-left"></div>
-        <div class="dot bottom-right"></div>
-      </div>
-
-      <div class="face right">
-        <div class="dot top-left"></div>
-        <div class="dot center"></div>
-        <div class="dot bottom-right"></div>
-      </div>
-
-      <div class="face left">
-        <div class="dot top-left"></div>
-        <div class="dot top-right"></div>
-        <div class="dot bottom-left"></div>
-        <div class="dot bottom-right"></div>
-      </div>
-
-      <div class="face top">
-        <div class="dot top-left"></div>
-        <div class="dot top-right"></div>
-        <div class="dot center"></div>
-        <div class="dot bottom-left"></div>
-        <div class="dot bottom-right"></div>
-      </div>
-
-      <div class="face bottom">
-        <div class="dot top-left"></div>
-        <div class="dot top-right"></div>
-        <div class="dot mid-left"></div>
-        <div class="dot mid-right"></div>
-        <div class="dot bottom-left"></div>
-        <div class="dot bottom-right"></div>
-      </div>
-
+<div id="rulesModal">
+    <div class="modalCard">
+        <h2>🔥 Правила игры</h2>
+        <p>Риск: +5 или -5 хайпа</p>
+        <p>Скандал: случайная карточка</p>
+        <p>Тюрьма: половина хайпа + пропуск</p>
+        <p>Победа: 100 хайпа</p>
+        <button onclick="startGame()">Начать игру</button>
     </div>
-  </div>
-
-  <button onclick="roll()">Бросить кубик</button>
-
-  <div id="diceResult" class="diceResult"></div>
-  <div id="players"></div>
-
 </div>
 
-<div id="scandalModal" class="modal">
-  <div class="modal-content">
-    <h2 id="scandalText"></h2>
-    <button onclick="closeScandal()">Ок</button>
-  </div>
+<div id="scandalModal" style="display:none;">
+    <div class="modalCard">
+        <h3>СКАНДАЛ</h3>
+        <p id="scandalText"></p>
+        <button onclick="closeScandal()">Ок</button>
+    </div>
 </div>
 
+<h2>HYPE GAME</h2>
+
+<div id="board"></div>
+
+<div id="cube"></div>
+<button id="rollBtn" onclick="roll()">Бросить кубик</button>
+<div id="diceResult"></div>
+
+<div id="players"></div>
+
+<script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
+
 </body>
 </html>
