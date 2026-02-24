@@ -17,6 +17,7 @@ socket.emit("joinRoom", {
 const board = document.getElementById("board");
 const cube = document.getElementById("cube");
 const diceResult = document.getElementById("diceResult");
+const rollBtn = document.getElementById("rollBtn");
 
 /* ====== КООРДИНАТЫ ====== */
 
@@ -50,10 +51,12 @@ let currentTurn = 0;
 
 function roll(){
     if(!room) return;
+    if(rollBtn.disabled) return;
+    rollBtn.disabled = true;
     socket.emit("rollDice", room);
 }
 
-/* ====== ОБНОВЛЕНИЕ ====== */
+/* ====== ОБНОВЛЕНИЕ ИГРОКОВ ====== */
 
 socket.on("updatePlayers", (data)=>{
     players = data.players;
@@ -114,9 +117,10 @@ function renderPlayers(){
     renderScore();
 }
 
-/* ====== СЧЁТ ====== */
+/* ====== СЧЁТ И БЛОК КНОПКИ ====== */
 
 function renderScore(){
+
     const container = document.getElementById("players");
     container.innerHTML = "";
 
@@ -128,6 +132,17 @@ function renderScore(){
           </div>
         `;
     });
+
+    // Активируем кнопку только если твой ход
+    const myPlayer = players.find(p => p.id === socket.id);
+
+    if(!myPlayer) return;
+
+    if(players[currentTurn]?.id === socket.id){
+        rollBtn.disabled = false;
+    } else {
+        rollBtn.disabled = true;
+    }
 }
 
 /* ====== АНИМАЦИЯ КУБИКА ====== */
