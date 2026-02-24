@@ -4,6 +4,12 @@ body {
     font-family:Arial;
     color:white;
     text-align:center;
+    background:linear-gradient(180deg,#111118,#0a0a0f);
+}
+
+#rollBtn:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 15px #ff2e88;
 }
 
 .activePlayer{
