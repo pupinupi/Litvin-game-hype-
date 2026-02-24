@@ -65,8 +65,7 @@ socket.on("updatePlayers", (data)=>{
 /* ====== КУБИК ====== */
 
 socket.on("diceRolled", ({dice})=>{
-    cube.innerText = dice;
-    diceResult.innerText = "Выпало: " + dice;
+    animateDice(dice);
 });
 
 /* ====== РИСК ====== */
@@ -122,4 +121,24 @@ function renderScore(){
           </div>
         `;
     });
+
+    function animateDice(value){
+
+    cube.style.transform = "rotate(0deg)";
+    cube.innerText = "🎲";
+
+    let rotation = 0;
+
+    const interval = setInterval(()=>{
+        rotation += 40;
+        cube.style.transform = `rotate(${rotation}deg)`;
+    },20);
+
+    setTimeout(()=>{
+        clearInterval(interval);
+        cube.style.transform = "rotate(0deg)";
+        cube.innerText = value;
+        diceResult.innerText = "Выпало: " + value;
+    },800);
 }
+
