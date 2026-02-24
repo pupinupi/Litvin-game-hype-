@@ -17,9 +17,8 @@ socket.emit("joinRoom", {
 const board = document.getElementById("board");
 const cube = document.getElementById("cube");
 const diceResult = document.getElementById("diceResult");
-const rollBtn = document.getElementById("rollBtn");
 
-/* ====== КООРДИНАТЫ (ТВОИ) ====== */
+/* ====== КООРДИНАТЫ ====== */
 
 const CELL_POSITIONS = [
   {x:110,y:597},
@@ -54,7 +53,7 @@ function roll(){
     socket.emit("rollDice", room);
 }
 
-/* ====== ОБНОВЛЕНИЕ ИГРОКОВ ====== */
+/* ====== ОБНОВЛЕНИЕ ====== */
 
 socket.on("updatePlayers", (data)=>{
     players = data.players;
@@ -84,7 +83,15 @@ socket.on("scandalCard", (card)=>{
     document.getElementById("scandalModal").style.display = "flex";
 });
 
-/* ====== ОТРИСОВКА ====== */
+/* ====== ПОБЕДА ====== */
+
+socket.on("gameOver", ({winner})=>{
+    document.getElementById("winnerText").innerText =
+      winner + " набрал 100 хайпа!";
+    document.getElementById("winModal").style.display = "flex";
+});
+
+/* ====== ОТРИСОВКА ФИШЕК ====== */
 
 function renderPlayers(){
 
@@ -121,8 +128,11 @@ function renderScore(){
           </div>
         `;
     });
+}
 
-    function animateDice(value){
+/* ====== АНИМАЦИЯ КУБИКА ====== */
+
+function animateDice(value){
 
     cube.style.transform = "rotate(0deg)";
     cube.innerText = "🎲";
@@ -141,9 +151,3 @@ function renderScore(){
         diceResult.innerText = "Выпало: " + value;
     },800);
 }
-
-    socket.on("gameOver", ({winner})=>{
-    document.getElementById("winnerText").innerText =
-      winner + " набрал 100 хайпа!";
-    document.getElementById("winModal").style.display = "flex";
-});
