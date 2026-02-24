@@ -6,6 +6,12 @@ body {
     text-align:center;
 }
 
+.activePlayer{
+    border:3px solid #ff2e88;
+    box-shadow:0 0 15px #ff2e88;
+    transform:scale(1.05);
+}
+
 /* ===== ПОЛЕ ===== */
 
 .board {
