@@ -50,6 +50,11 @@ socket.on("updatePlayers", (data)=>{
     renderPlayers();
 });
 
+function startGame(){
+    const modal = document.getElementById("rulesModal");
+    modal.classList.remove("show");
+});
+
 /* ===== КУБИК ===== */
 
 socket.on("diceRolled", ({dice})=>{
