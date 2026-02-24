@@ -8,41 +8,41 @@
 <style>
 body{
     margin:0;
-    font-family:Arial, sans-serif;
     background:#0f0f14;
-    color:white;
+    font-family:Arial, sans-serif;
     text-align:center;
+    color:white;
 }
 
 #board{
     position:relative;
-    width:1000px;
-    height:700px;
+    width:1024px;
+    height:1024px;
     margin:20px auto;
     background:url("/board.jpg") no-repeat center;
-    background-size:contain;
+    background-size:1024px 1024px; /* ЖЁСТКО фиксируем */
 }
 
 .token{
     position:absolute;
-    width:30px;
-    height:30px;
+    width:32px;
+    height:32px;
     border-radius:50%;
     border:3px solid white;
-    box-shadow:0 0 10px rgba(0,0,0,0.6);
+    transform:translate(-50%, -50%);
     transition:all .4s ease;
+    z-index:5;
 }
 
 #cube{
-    width:90px;
-    height:90px;
-    margin:20px auto;
-    transform-style:preserve-3d;
-    transition:transform .6s ease;
+    font-size:80px;
+    margin-top:20px;
+    transition:transform .3s ease;
 }
 
 #rollBtn{
-    padding:15px 35px;
+    margin-top:15px;
+    padding:12px 30px;
     font-size:18px;
     background:#ff2e88;
     border:none;
@@ -53,7 +53,6 @@ body{
 
 #rollBtn:disabled{
     opacity:.4;
-    cursor:not-allowed;
 }
 
 #diceResult{
@@ -63,14 +62,13 @@ body{
 
 #players{
     margin-top:20px;
-    font-size:24px;
 }
 
 .playerCard{
     background:#1b1b25;
-    margin:8px auto;
-    padding:10px 20px;
-    border-radius:10px;
+    padding:10px;
+    margin:5px auto;
+    border-radius:8px;
     width:300px;
     font-weight:bold;
 }
@@ -83,7 +81,6 @@ body{
     height:100%;
     background:rgba(0,0,0,0.9);
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
     z-index:9999;
@@ -93,7 +90,7 @@ body{
     background:#1c1c28;
     padding:30px;
     border-radius:15px;
-    width:350px;
+    width:400px;
 }
 
 .modalCard button{
@@ -111,29 +108,43 @@ body{
 <body>
 
 <div id="rulesModal">
-    <div class="modalCard">
-        <h2>🔥 Правила игры</h2>
-        <p>Риск: +5 или -5 хайпа</p>
-        <p>Скандал: случайная карточка</p>
-        <p>Тюрьма: половина хайпа + пропуск</p>
-        <p>Победа: 100 хайпа</p>
-        <button onclick="startGame()">Начать игру</button>
-    </div>
+  <div class="modalCard">
+    <h2>🔥 ПРАВИЛА ИГРЫ</h2>
+
+    <p><b>🎲 Обычный ход</b><br>
+    Передвижение на число кубика</p>
+
+    <p><b>⚡ РИСК</b><br>
+    1-3 → -5 хайпа<br>
+    4-6 → +5 хайпа</p>
+
+    <p><b>🚔 ТЮРЬМА</b><br>
+    -50% хайпа<br>
+    Пропуск следующего хода</p>
+
+    <p><b>💥 СКАНДАЛ</b><br>
+    Случайная карточка</p>
+
+    <p><b>🏆 ПОБЕДА</b><br>
+    100 хайпа</p>
+
+    <button onclick="startGame()">Начать игру</button>
+  </div>
 </div>
 
 <div id="scandalModal" style="display:none;">
-    <div class="modalCard">
-        <h3>СКАНДАЛ</h3>
-        <p id="scandalText"></p>
-        <button onclick="closeScandal()">Ок</button>
-    </div>
+  <div class="modalCard">
+    <h3>СКАНДАЛ</h3>
+    <p id="scandalText"></p>
+    <button onclick="closeScandal()">Ок</button>
+  </div>
 </div>
 
 <h2>HYPE GAME</h2>
 
 <div id="board"></div>
 
-<div id="cube"></div>
+<div id="cube">🎲</div>
 <button id="rollBtn" onclick="roll()">Бросить кубик</button>
 <div id="diceResult"></div>
 
