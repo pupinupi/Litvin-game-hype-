@@ -16,11 +16,15 @@ const CELLS = [
 const scandalCards = [
   { text:"Скандал в СМИ", value:-3 },
   { text:"Поддержка фанатов", value:+4 },
-  { text:"Отмена концерта", value:-5 },
+  { text:"Это монтаааж!", value:-5 },
   { text:"Вирусный клип", value:+6 }
 ];
 
 io.on("connection",(socket)=>{
+
+  socket.on("startGame",(roomCode)=>{
+io.to(roomCode).emit("gameStarted");
+});
 
   socket.on("joinRoom",({name,roomCode,color})=>{
 
