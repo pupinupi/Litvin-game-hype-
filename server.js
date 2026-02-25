@@ -68,7 +68,7 @@ io.on("connection", (socket) => {
             dice,
             players: room.players
         });
-    
+    });
 
     socket.on("disconnect", () => {
         for (const code in rooms) {
@@ -82,8 +82,9 @@ io.on("connection", (socket) => {
                 rooms[code]
             );
         }
+    });
 
-});
+}); // ✅ ВОТ ЭТОГО НЕ ХВАТАЛО
 
 const PORT = process.env.PORT || 3000;
 
