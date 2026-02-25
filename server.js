@@ -109,8 +109,9 @@ console.log("DISCONNECTED",socket.id);
 
 /* ===== PORT ===== */
 
-const PORT=process.env.PORT||3000;
+const PORT = process.env.PORT || 3000;
 
-server.listen(PORT,()=>{
-console.log("SERVER STARTED",PORT);
+http.listen(PORT, () => {
+  console.log("Server running on", PORT);
+});
 });
