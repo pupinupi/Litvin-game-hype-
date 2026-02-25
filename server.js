@@ -8,29 +8,19 @@ app.use(express.static("public"));
 const rooms = {};
 const MAX_PLAYERS = 4;
 
-/* ================= CELLS ================= */
-
-const CELLS=[
-"start","+3","+2","scandal","risk","+2",
-"scandal","+3","+5","zero",
-"jail","+3","risk","+3",
-"skip","+2","scandal","+8","zero","+4"
+const CELLS = [
+"start","+3","+2","scandal","risk","+2","scandal","+3","+5","zero",
+"jail","+3","risk","+3","skip","+2","scandal","+8","zero","+4"
 ];
-
-/* ================= CARDS ================= */
 
 const scandalCards=[
 { text:"Скандал в СМИ",value:-3 },
-{ text:"Поддержка фанатов",value:+4 },
-{ text:"Это монтаж!",value:-5 },
-{ text:"Вирусный клип",value:+6 }
+{ text:"Поддержка фанатов",value:4 },
+{ text:"Это монтаааж!",value:-5 },
+{ text:"Вирусный клип",value:6 }
 ];
 
-/* ================= CONNECTION ================= */
-
 io.on("connection",(socket)=>{
-
-/* ===== JOIN ===== */
 
 socket.on("joinRoom",({name,roomCode,color})=>{
 
@@ -45,12 +35,7 @@ host:socket.id
 
 const room=rooms[roomCode];
 
-if(room.started) return;
-if(room.players.length>=MAX_PLAYERS) return;
-
-/* ✅ COLOR LOCK */
-const taken=room.players.find(p=>p.color===color);
-if(taken){
+if(room.players.find(p=>p.color===color)){
 socket.emit("colorTaken");
 return;
 }
@@ -66,11 +51,8 @@ skip:false
 
 socket.join(roomCode);
 
-sendRoom(roomCode);
+io.to(roomCode).emit("roomUpdate",room);
 });
-
-
-/* ===== START GAME ===== */
 
 socket.on("startGame",(roomCode)=>{
 
@@ -83,92 +65,76 @@ if(room.players.length<2) return;
 room.started=true;
 
 io.to(roomCode).emit("gameStarted");
-sendRoom(roomCode);
-
+io.to(roomCode).emit("roomUpdate",room);
 });
-
-
-/* ===== ROLL DICE ===== */
 
 socket.on("rollDice",(roomCode)=>{
 
 const room=rooms[roomCode];
-if(!room || !room.started) return;
+if(!room||!room.started) return;
 
 const player=room.players[room.turn];
-if(!player || player.id!==socket.id) return;
+if(!player||player.id!==socket.id) return;
 
-/* SKIP TURN */
 if(player.skip){
 player.skip=false;
 nextTurn(room);
-sendRoom(roomCode);
+io.to(roomCode).emit("roomUpdate",room);
 return;
 }
 
 const dice=Math.floor(Math.random()*6)+1;
 
 player.position+=dice;
-if(player.position>=CELLS.length)
 player.position%=CELLS.length;
 
-/* ✅ FIX dice */
-io.to(roomCode).emit("diceRolled",{dice});
+io.to(roomCode).emit("diceRolled",dice);
 
 handleCell(player,room,roomCode,dice);
 
-sendRoom(roomCode);
-
+io.to(roomCode).emit("roomUpdate",room);
 });
-
-
-/* ===== DISCONNECT ===== */
 
 socket.on("disconnect",()=>{
 
-for(const roomCode in rooms){
+for(const code in rooms){
 
-const room=rooms[roomCode];
-
-const i=room.players.findIndex(
-p=>p.id===socket.id
-);
-
+const room=rooms[code];
+const i=room.players.findIndex(p=>p.id===socket.id);
 if(i===-1) continue;
 
 room.players.splice(i,1);
 
-if(room.host===socket.id && room.players.length)
+if(room.host===socket.id && room.players.length){
 room.host=room.players[0].id;
+}
 
-if(room.turn>=room.players.length)
+if(room.turn>=room.players.length){
 room.turn=0;
+}
 
 if(room.players.length===0){
-delete rooms[roomCode];
-continue;
+delete rooms[code];
+}else{
+io.to(code).emit("roomUpdate",room);
 }
-
-sendRoom(roomCode);
 }
 });
 
 });
-
-/* ================= GAME LOGIC ================= */
 
 function handleCell(player,room,roomCode,dice){
 
 const cell=CELLS[player.position];
 
-if(cell==="+2")player.hype+=2;
-if(cell==="+3")player.hype+=3;
-if(cell==="+4")player.hype+=4;
-if(cell==="+5")player.hype+=5;
-if(cell==="+8")player.hype+=8;
+if(cell==="+2") player.hype+=2;
+if(cell==="+3") player.hype+=3;
+if(cell==="+4") player.hype+=4;
+if(cell==="+5") player.hype+=5;
+if(cell==="+8") player.hype+=8;
 
-if(cell==="zero")player.hype=0;
-if(cell==="skip")player.skip=true;
+if(cell==="zero") player.hype=0;
+if(cell==="skip") player.skip=true;
 
 if(cell==="jail"){
 player.hype=Math.max(0,player.hype-5);
@@ -176,42 +142,18 @@ player.skip=true;
 }
 
 if(cell==="risk"){
-
-if(dice<=3){
-player.hype=Math.max(0,player.hype-2);
-}else{
-player.hype+=2;
-}
-
+player.hype+=dice<=3?-2:2;
 }
 
 if(cell==="scandal"){
-
-const card=
-scandalCards[
+const card=scandalCards[
 Math.floor(Math.random()*scandalCards.length)
 ];
-
-player.hype=Math.max(
-0,
-player.hype+card.value
-);
-
-io.to(roomCode).emit("scandalCard",card);
-}
-
-/* WIN */
-
-if(player.hype>=50){
-io.to(roomCode).emit("gameOver",player);
-room.started=false;
-return;
+player.hype=Math.max(0,player.hype+card.value);
 }
 
 nextTurn(room);
 }
-
-/* ================= HELPERS ================= */
 
 function nextTurn(room){
 room.turn++;
@@ -219,19 +161,6 @@ if(room.turn>=room.players.length)
 room.turn=0;
 }
 
-/* ✅ ONE FORMAT FOR CLIENT */
-
-function sendRoom(roomCode){
-
-const room=rooms[roomCode];
-
-io.to(roomCode).emit("updatePlayers",{
-players:room.players,
-turn:room.turn,
-host:room.host
-});
-}
-
 http.listen(3000,()=>{
-console.log("SERVER RUNNING ✅");
+console.log("SERVER RUNNING");
 });
