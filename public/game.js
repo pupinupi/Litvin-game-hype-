@@ -1,5 +1,48 @@
 const socket=io();
 
+const socket = io();
+
+const name = localStorage.getItem("name");
+const room = localStorage.getItem("room");
+const color = localStorage.getItem("color");
+
+document.body.insertAdjacentHTML(
+"beforeend",
+`<div id="debug"
+style="
+position:fixed;
+bottom:0;
+left:0;
+background:black;
+color:#00ff88;
+font-size:12px;
+padding:10px;
+z-index:9999;
+width:100%;
+max-height:200px;
+overflow:auto;">
+DEBUG START
+</div>`
+);
+
+function log(msg){
+document.getElementById("debug")
+.innerHTML += "<br>"+msg;
+}
+
+log("socket created");
+
+socket.on("connect",()=>{
+log("CONNECTED ✅");
+});
+
+log("sending joinRoom...");
+socket.emit("joinRoom",{name,roomCode:room,color});
+
+socket.on("roomUpdate",(roomData)=>{
+log("ROOM UPDATE ✅ players:"+roomData.players.length);
+});
+
 const name=localStorage.getItem("name");
 const room=localStorage.getItem("room");
 const color=localStorage.getItem("color");
