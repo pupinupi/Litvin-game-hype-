@@ -1,117 +1,107 @@
-const express=require("express");
-const http=require("http");
-const {Server}=require("socket.io");
-
-const app=express();
-const server=http.createServer(app);
-
-const io=new Server(server,{
-cors:{origin:"*"}
+const express = require("express");
+const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http, {
+  cors: {
+    origin: "*"
+  }
 });
 
 app.use(express.static("public"));
 
-/* ================= ROOMS ================= */
+/*
+========================
+ROOM STORAGE
+========================
+*/
 
-const rooms={};
+const rooms = {};
 
-io.on("connection",(socket)=>{
+/*
+========================
+JOIN ROOM
+========================
+*/
 
-console.log("USER CONNECTED",socket.id);
+io.on("connection", (socket) => {
 
-/* ===== JOIN ROOM ===== */
+  console.log("Player connected:", socket.id);
 
-socket.on("joinRoom",({name,roomCode,color})=>{
+  socket.on("joinRoom", ({ name, roomCode, color }) => {
 
-if(!rooms[roomCode]){
-rooms[roomCode]={
-host:socket.id,
-players:[],
-turn:0
-};
-}
+    if (!roomCode) return;
 
-const room=rooms[roomCode];
+    if (!rooms[roomCode]) {
+      rooms[roomCode] = {
+        players: [],
+        started: false
+      };
+    }
 
-if(room.players.find(p=>p.color===color)){
-socket.emit("colorTaken");
-return;
-}
+    const room = rooms[roomCode];
 
-const player={
-id:socket.id,
-name,
-color,
-position:0,
-hype:0
-};
+    const player = {
+      id: socket.id,
+      name,
+      color
+    };
 
-room.players.push(player);
+    room.players.push(player);
 
-socket.join(roomCode);
+    socket.join(roomCode);
 
-io.to(roomCode).emit("roomUpdate",room);
-});
+    console.log(name, "joined room", roomCode);
 
-/* ===== START GAME ===== */
+    io.to(roomCode).emit("roomUpdate", room);
+  });
 
-socket.on("startGame",(roomCode)=>{
+/*
+========================
+START GAME
+========================
+*/
 
-const room=rooms[roomCode];
-if(!room) return;
+  socket.on("startGame", (roomCode) => {
 
-if(socket.id!==room.host) return;
+    const room = rooms[roomCode];
+    if (!room) return;
 
-io.to(roomCode).emit("gameStarted");
-});
+    room.started = true;
 
-/* ===== ROLL DICE ===== */
+    io.to(roomCode).emit("gameStarted");
+  });
 
-socket.on("rollDice",(roomCode)=>{
+/*
+========================
+DISCONNECT
+========================
+*/
 
-const room=rooms[roomCode];
-if(!room) return;
+  socket.on("disconnect", () => {
 
-const dice=Math.floor(Math.random()*6)+1;
+    console.log("Disconnected:", socket.id);
 
-const player=room.players[room.turn];
-player.position=
-(player.position+dice)%20;
+    for (const code in rooms) {
 
-room.turn=
-(room.turn+1)%room.players.length;
+      rooms[code].players =
+        rooms[code].players.filter(
+          p => p.id !== socket.id
+        );
 
-io.to(roomCode).emit("diceRolled",dice);
-io.to(roomCode).emit("roomUpdate",room);
-});
-
-/* ===== DISCONNECT ===== */
-
-socket.on("disconnect",()=>{
-
-for(const code in rooms){
-
-rooms[code].players=
-rooms[code].players.filter(
-p=>p.id!==socket.id
-);
-
-io.to(code).emit(
-"roomUpdate",
-rooms[code]
-);
-}
-
-console.log("DISCONNECTED",socket.id);
-});
+      io.to(code).emit("roomUpdate", rooms[code]);
+    }
+  });
 
 });
 
-/* ===== PORT ===== */
+/*
+========================
+RAILWAY / RENDER PORT FIX
+========================
+*/
 
 const PORT = process.env.PORT || 3000;
 
 http.listen(PORT, () => {
-  console.log("Server running on", PORT);
-});
+  console.log("Server running on port", PORT);
 });
