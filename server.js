@@ -4,13 +4,20 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
 
 app.use(express.static("public"));
 
 const rooms = {};
 
 io.on("connection", (socket) => {
+
+    console.log("CONNECTED:", socket.id);
 
     socket.on("joinRoom", ({ name, roomCode, color }) => {
 
@@ -22,11 +29,6 @@ io.on("connection", (socket) => {
         }
 
         const room = rooms[roomCode];
-
-        if (room.players.find(p => p.color === color)) {
-            socket.emit("colorTaken");
-            return;
-        }
 
         const player = {
             id: socket.id,
@@ -43,22 +45,24 @@ io.on("connection", (socket) => {
     });
 
     socket.on("startGame", (roomCode) => {
+
         const room = rooms[roomCode];
         if (!room) return;
 
         room.started = true;
+
         io.to(roomCode).emit("gameStarted", room);
     });
 
     socket.on("rollDice", (roomCode) => {
+
         const room = rooms[roomCode];
         if (!room) return;
 
         const dice = Math.floor(Math.random() * 6) + 1;
 
-        const player = room.players.find(
-            p => p.id === socket.id
-        );
+        const player =
+            room.players.find(p => p.id === socket.id);
 
         if (!player) return;
 
@@ -71,7 +75,9 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+
         for (const code in rooms) {
+
             rooms[code].players =
                 rooms[code].players.filter(
                     p => p.id !== socket.id
@@ -82,9 +88,11 @@ io.on("connection", (socket) => {
                 rooms[code]
             );
         }
+
+        console.log("DISCONNECTED:", socket.id);
     });
 
-}); // ✅ ВОТ ЭТОГО НЕ ХВАТАЛО
+});
 
 const PORT = process.env.PORT || 3000;
 
