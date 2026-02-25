@@ -39,11 +39,6 @@ transform:translate(-50%,-50%);
 transition:all .35s ease;
 }
 
-#cube{
-font-size:80px;
-margin-top:15px;
-}
-
 button{
 padding:12px 25px;
 margin:10px;
@@ -62,34 +57,49 @@ padding:8px;
 width:260px;
 border-radius:8px;
 }
+
+.activeTurn{
+outline:3px solid yellow;
+}
+
+.host{
+color:gold;
+}
 </style>
 </head>
 
 <body>
 
-<!-- ===== ЛОББИ ===== -->
+<!-- ===== LOBBY ===== -->
 <div id="lobby">
+
 <h2>Комната: <span id="roomCode"></span></h2>
 
+<h3>Игроки</h3>
 <div id="playersList"></div>
 
 <button id="startBtn">Начать игру</button>
+
 </div>
 
-<!-- ===== ИГРА ===== -->
+
+<!-- ===== GAME ===== -->
 <div id="game">
+
+<h2 id="turnInfo"></h2>
 
 <div id="boardWrapper">
 <div id="board"></div>
 </div>
 
 <div id="cube">🎲</div>
+
 <button id="rollBtn">Бросить кубик</button>
 
-<div id="info"></div>
 <div id="players"></div>
 
 </div>
+
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
