@@ -82,7 +82,6 @@ io.on("connection", (socket) => {
                 rooms[code]
             );
         }
-    });
 
 });
 
