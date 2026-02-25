@@ -1,166 +1,132 @@
-const express = require("express");
-const app = express();
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
+const socket = io(window.location.origin,{
+transports:["websocket","polling"]
+});
 
-app.use(express.static("public"));
+const name=localStorage.getItem("name");
+const room=localStorage.getItem("room");
+const color=localStorage.getItem("color");
 
-const rooms = {};
-const MAX_PLAYERS = 4;
+document.getElementById("roomCode").innerText=room;
 
-const CELLS = [
-"start","+3","+2","scandal","risk","+2","scandal","+3","+5","zero",
-"jail","+3","risk","+3","skip","+2","scandal","+8","zero","+4"
-];
+socket.emit("joinRoom",{name,roomCode:room,color});
 
-const scandalCards=[
-{ text:"Скандал в СМИ",value:-3 },
-{ text:"Поддержка фанатов",value:4 },
-{ text:"Это монтаааж!",value:-5 },
-{ text:"Вирусный клип",value:6 }
-];
+const lobby=document.getElementById("lobby");
+const game=document.getElementById("game");
+const board=document.getElementById("board");
 
-io.on("connection",(socket)=>{
+const playersList=document.getElementById("playersList");
+const playersDiv=document.getElementById("players");
 
-socket.on("joinRoom",({name,roomCode,color})=>{
+const startBtn=document.getElementById("startBtn");
+const rollBtn=document.getElementById("rollBtn");
+const cube=document.getElementById("cube");
 
-if(!rooms[roomCode]){
-rooms[roomCode]={
-players:[],
-turn:0,
-started:false,
-host:socket.id
+let players=[];
+let turn=0;
+let myId=null;
+let hostId=null;
+
+socket.on("connect",()=>{
+myId=socket.id;
+});
+
+startBtn.onclick=()=>{
+socket.emit("startGame",room);
 };
-}
 
-const room=rooms[roomCode];
+rollBtn.onclick=()=>{
+socket.emit("rollDice",room);
+};
 
-if(room.players.find(p=>p.color===color)){
-socket.emit("colorTaken");
-return;
-}
-
-room.players.push({
-id:socket.id,
-name,
-color,
-position:0,
-hype:0,
-skip:false
+socket.on("gameStarted",()=>{
+lobby.style.display="none";
+game.style.display="block";
 });
 
-socket.join(roomCode);
+socket.on("roomUpdate",(roomData)=>{
 
-io.to(roomCode).emit("roomUpdate",room);
+players=roomData.players;
+turn=roomData.turn;
+hostId=roomData.host;
+
+renderLobby();
+renderPlayers();
+updateHostUI();
 });
 
-socket.on("startGame",(roomCode)=>{
-
-const room=rooms[roomCode];
-if(!room) return;
-
-if(socket.id!==room.host) return;
-if(room.players.length<2) return;
-
-room.started=true;
-
-io.to(roomCode).emit("gameStarted");
-io.to(roomCode).emit("roomUpdate",room);
+socket.on("diceRolled",(dice)=>{
+cube.innerText=dice;
 });
 
-socket.on("rollDice",(roomCode)=>{
+/* ================= LOBBY ================= */
 
-const room=rooms[roomCode];
-if(!room||!room.started) return;
+function renderLobby(){
 
-const player=room.players[room.turn];
-if(!player||player.id!==socket.id) return;
+playersList.innerHTML="";
 
-if(player.skip){
-player.skip=false;
-nextTurn(room);
-io.to(roomCode).emit("roomUpdate",room);
-return;
-}
-
-const dice=Math.floor(Math.random()*6)+1;
-
-player.position+=dice;
-player.position%=CELLS.length;
-
-io.to(roomCode).emit("diceRolled",dice);
-
-handleCell(player,room,roomCode,dice);
-
-io.to(roomCode).emit("roomUpdate",room);
+players.forEach(p=>{
+playersList.innerHTML+=`
+<div class="playerCard">
+${p.name}
+</div>`;
 });
-
-socket.on("disconnect",()=>{
-
-for(const code in rooms){
-
-const room=rooms[code];
-const i=room.players.findIndex(p=>p.id===socket.id);
-if(i===-1) continue;
-
-room.players.splice(i,1);
-
-if(room.host===socket.id && room.players.length){
-room.host=room.players[0].id;
 }
 
-if(room.turn>=room.players.length){
-room.turn=0;
-}
+/* ================= HOST ================= */
 
-if(room.players.length===0){
-delete rooms[code];
+function updateHostUI(){
+
+if(myId===hostId){
+startBtn.disabled=false;
+startBtn.innerText="👑 Начать игру";
 }else{
-io.to(code).emit("roomUpdate",room);
+startBtn.disabled=true;
+startBtn.innerText="Ожидание хоста...";
 }
 }
-});
 
-});
+/* ================= BOARD ================= */
 
-function handleCell(player,room,roomCode,dice){
-
-const cell=CELLS[player.position];
-
-if(cell==="+2") player.hype+=2;
-if(cell==="+3") player.hype+=3;
-if(cell==="+4") player.hype+=4;
-if(cell==="+5") player.hype+=5;
-if(cell==="+8") player.hype+=8;
-
-if(cell==="zero") player.hype=0;
-if(cell==="skip") player.skip=true;
-
-if(cell==="jail"){
-player.hype=Math.max(0,player.hype-5);
-player.skip=true;
-}
-
-if(cell==="risk"){
-player.hype+=dice<=3?-2:2;
-}
-
-if(cell==="scandal"){
-const card=scandalCards[
-Math.floor(Math.random()*scandalCards.length)
+const CELL_POSITIONS=[
+{x:110,y:597},{x:99,y:450},{x:80,y:345},{x:99,y:232},
+{x:99,y:133},{x:218,y:97},{x:348,y:91},{x:500,y:88},
+{x:624,y:102},{x:762,y:91},{x:895,y:130},{x:912,y:204},
+{x:912,y:337},{x:909,y:425},{x:901,y:580},{x:771,y:588},
+{x:641,y:588},{x:483,y:594},{x:331,y:586},{x:218,y:594}
 ];
-player.hype=Math.max(0,player.hype+card.value);
-}
 
-nextTurn(room);
-}
+function renderPlayers(){
 
-function nextTurn(room){
-room.turn++;
-if(room.turn>=room.players.length)
-room.turn=0;
-}
+board.querySelectorAll(".token")
+.forEach(t=>t.remove());
 
-http.listen(3000,()=>{
-console.log("SERVER RUNNING");
+players.forEach(p=>{
+
+const pos=CELL_POSITIONS[p.position];
+if(!pos) return;
+
+const token=document.createElement("div");
+token.className="token";
+
+token.style.background=p.color;
+token.style.left=pos.x+"px";
+token.style.top=pos.y+"px";
+
+board.appendChild(token);
 });
+
+renderScore();
+}
+
+function renderScore(){
+
+playersDiv.innerHTML="";
+
+players.forEach((p,i)=>{
+playersDiv.innerHTML+=`
+<div class="playerCard"
+style="border:${i===turn?'2px solid #ff2e88':'none'}">
+${p.name}: ${p.hype}
+</div>`;
+});
+}
