@@ -3,46 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <title>HYPE GAME</title>
+
 <style>
-body{margin:0;background:#0f0f14;color:white;font-family:Arial;text-align:center}
+body{
+margin:0;
+background:#0f0f14;
+color:white;
+font-family:Arial;
+text-align:center;
+}
+
 #lobby{padding:30px}
 #game{display:none}
-#boardWrapper{display:flex;justify-content:center}
+
+#boardWrapper{
+display:flex;
+justify-content:center;
+}
+
 #board{
-  position:relative;
-  width:1024px;
-  height:1024px;
-  background:url("/board.jpg") no-repeat center;
-  background-size:contain;
+position:relative;
+width:1024px;
+height:1024px;
+background:url("/board.jpg") no-repeat center;
+background-size:1024px 1024px;
 }
+
 .token{
-  position:absolute;
-  width:30px;height:30px;
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  transition:all .4s ease;
+position:absolute;
+width:34px;
+height:34px;
+border-radius:50%;
+border:3px solid white;
+transform:translate(-50%,-50%);
+transition:all .35s ease;
 }
-button{padding:10px 20px;margin:10px;border:none;border-radius:8px;background:#ff2e88;color:white}
+
+#cube{
+font-size:80px;
+margin-top:15px;
+}
+
+button{
+padding:12px 25px;
+margin:10px;
+border:none;
+border-radius:10px;
+background:#ff2e88;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.playerCard{
+background:#1b1b25;
+margin:6px auto;
+padding:8px;
+width:260px;
+border-radius:8px;
+}
 </style>
 </head>
+
 <body>
 
+<!-- ===== ЛОББИ ===== -->
 <div id="lobby">
 <h2>Комната: <span id="roomCode"></span></h2>
+
 <div id="playersList"></div>
+
 <button id="startBtn">Начать игру</button>
 </div>
 
+<!-- ===== ИГРА ===== -->
 <div id="game">
+
 <div id="boardWrapper">
 <div id="board"></div>
 </div>
+
 <div id="cube">🎲</div>
-<button onclick="roll()">Бросить</button>
+<button id="rollBtn">Бросить кубик</button>
+
 <div id="info"></div>
+<div id="players"></div>
+
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
+
 </body>
 </html>
