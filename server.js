@@ -1,35 +1,25 @@
 const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
-
 const { Server } = require("socket.io");
 
-const io = new Server(http, {
-  cors: {
-    origin: "*"
-  }
-});
+const io = new Server(http);
 
 app.use(express.static("public"));
 
-const rooms = {};
+let rooms = {};
 
 io.on("connection", (socket) => {
-
-  console.log("Player connected:", socket.id);
 
   socket.on("joinRoom", ({ name, roomCode, color }) => {
 
     if (!rooms[roomCode]) {
       rooms[roomCode] = {
-        players: [],
-        started: false
+        players: []
       };
     }
 
-    const room = rooms[roomCode];
-
-    room.players.push({
+    rooms[roomCode].players.push({
       id: socket.id,
       name,
       color,
@@ -38,32 +28,20 @@ io.on("connection", (socket) => {
 
     socket.join(roomCode);
 
-    io.to(roomCode).emit("roomUpdate", room);
+    io.to(roomCode).emit("roomUpdate", rooms[roomCode]);
   });
 
   socket.on("startGame", (roomCode) => {
-
-    if (!rooms[roomCode]) return;
-
-    rooms[roomCode].started = true;
-
     io.to(roomCode).emit("gameStarted");
-
   });
 
   socket.on("disconnect", () => {
 
     for (const code in rooms) {
-
       rooms[code].players =
-        rooms[code].players.filter(
-          p => p.id !== socket.id
-        );
+        rooms[code].players.filter(p => p.id !== socket.id);
 
-      io.to(code).emit(
-        "roomUpdate",
-        rooms[code]
-      );
+      io.to(code).emit("roomUpdate", rooms[code]);
     }
 
   });
@@ -73,5 +51,5 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 3000;
 
 http.listen(PORT, () => {
-  console.log("Server running on", PORT);
+  console.log("Server running");
 });
