@@ -1,102 +1,117 @@
-let hype = 0;
-let position = 0;
+const socket=io();
 
-const player = document.getElementById("player");
+const name=localStorage.getItem("name");
+const room=localStorage.getItem("room");
+const color=localStorage.getItem("color");
 
-/*
-ТВОЙ МАРШРУТ
-движение:
-⬆ вверх
-➡ вправо
-⬇ вниз
-⬅ влево
-*/
+socket.emit("joinRoom",{name,roomCode:room,color});
 
-const path = [
+const board=document.getElementById("board");
+const cube=document.getElementById("cube");
+const info=document.getElementById("info");
 
-{ x:110, y:590 },
-{ x:110, y:500 },
-{ x:110, y:410 },
-{ x:110, y:320 },
-{ x:110, y:230 },
+/* ======================
+   ТВОИ КООРДИНАТЫ
+====================== */
 
-{ x:200, y:200 },
-{ x:320, y:190 },
-{ x:450, y:185 },
-{ x:580, y:190 },
-{ x:720, y:200 },
+const CELLS=[
 
-{ x:820, y:260 },
-{ x:820, y:360 },
-{ x:820, y:460 },
-{ x:820, y:560 },
+{x:108,y:599},
 
-{ x:700, y:590 },
-{ x:560, y:600 },
-{ x:420, y:600 },
-{ x:280, y:600 }
+{x:110,y:456},
+{x:116,y:359},
+{x:105,y:238},
+{x:110,y:127},
+
+{x:235,y:97},
+{x:354,y:105},
+{x:500,y:99},
+{x:641,y:97},
+{x:793,y:91},
+{x:912,y:127},
+
+{x:909,y:246},
+{x:912,y:345},
+{x:903,y:456},
+{x:909,y:575},
+
+{x:798,y:608},
+{x:638,y:591},
+{x:489,y:605},
+{x:340,y:588},
+{x:210,y:608},
+{x:124,y:633}
+
 ];
 
-movePlayer();
+let players=[];
 
-/* ===== движение ===== */
+/* ======================
+UPDATE
+====================== */
 
-function movePlayer(){
-    const cell = path[position];
+socket.on("roomUpdate",(room)=>{
+players=room.players;
+render();
+});
 
-    player.style.left = cell.x + "px";
-    player.style.top = cell.y + "px";
-}
+socket.on("diceRolled",({dice,players:p})=>{
+players=p;
+animateDice(dice);
+render();
+});
 
-/* ===== hype ===== */
+/* ======================
+ROLL
+====================== */
 
-function updateHype(value){
-    hype += value;
-    document.getElementById("hype").innerText = hype;
-}
-
-/* ===== кубик ===== */
-
-function rollDice(){
-
-    const dice =
-        Math.floor(Math.random()*6)+1;
-
-    updateHype(dice);
-
-    moveSteps(dice);
-}
-
-/* ===== пошаговое движение ===== */
-
-function moveSteps(steps){
-
-    let moved = 0;
-
-    const walk = setInterval(()=>{
-
-        position++;
-
-        if(position >= path.length)
-            position = 0;
-
-        movePlayer();
-
-        moved++;
-
-        if(moved === steps)
-            clearInterval(walk);
-
-    },350);
-}
-
-document.getElementById("board").onclick = function(e){
-
-    const rect = this.getBoundingClientRect();
-
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-
-    console.log(`{ x:${x}, y:${y} },`);
+document
+.getElementById("rollBtn")
+.onclick=()=>{
+socket.emit("rollDice",room);
 };
 
+/* ======================
+DICE
+====================== */
+
+function animateDice(val){
+
+cube.style.transform="rotate(360deg)";
+
+setTimeout(()=>{
+cube.style.transform="rotate(0)";
+cube.innerText=val;
+info.innerText="Выпало "+val;
+},400);
+
+}
+
+/* ======================
+TOKENS
+====================== */
+
+function render(){
+
+board
+.querySelectorAll(".token")
+.forEach(t=>t.remove());
+
+players.forEach(p=>{
+
+const pos=
+CELLS[p.position % CELLS.length];
+
+const token=
+document.createElement("div");
+
+token.className="token";
+token.style.left=pos.x+"px";
+token.style.top=pos.y+"px";
+token.style.background=p.color;
+
+board.appendChild(token);
+
+});
+
+}
