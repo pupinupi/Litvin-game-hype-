@@ -1,70 +1,79 @@
 let hype = 0;
 let position = 0;
 
-/*
-КООРДИНАТЫ КЛЕТОК
-(можно потом идеально подогнать)
-*/
-const path = [
-    {x:110,y:560},
-    {x:200,y:560},
-    {x:300,y:560},
-    {x:400,y:560},
-    {x:500,y:560},
-    {x:600,y:560},
-    {x:700,y:560},
-    {x:800,y:560},
-
-    {x:850,y:480},
-    {x:850,y:380},
-    {x:850,y:280},
-
-    {x:780,y:200},
-    {x:650,y:150},
-    {x:500,y:120},
-    {x:350,y:140},
-    {x:220,y:170},
-
-    {x:150,y:250},
-    {x:130,y:350},
-    {x:120,y:450}
-];
-
 const player = document.getElementById("player");
 
+/*
+ТВОЙ МАРШРУТ
+движение:
+⬆ вверх
+➡ вправо
+⬇ вниз
+⬅ влево
+*/
+
+const path = [
+
+{ x:110, y:590 },
+{ x:110, y:500 },
+{ x:110, y:410 },
+{ x:110, y:320 },
+{ x:110, y:230 },
+
+{ x:200, y:200 },
+{ x:320, y:190 },
+{ x:450, y:185 },
+{ x:580, y:190 },
+{ x:720, y:200 },
+
+{ x:820, y:260 },
+{ x:820, y:360 },
+{ x:820, y:460 },
+{ x:820, y:560 },
+
+{ x:700, y:590 },
+{ x:560, y:600 },
+{ x:420, y:600 },
+{ x:280, y:600 }
+];
+
 movePlayer();
+
+/* ===== движение ===== */
+
+function movePlayer(){
+    const cell = path[position];
+
+    player.style.left = cell.x + "px";
+    player.style.top = cell.y + "px";
+}
+
+/* ===== hype ===== */
 
 function updateHype(value){
     hype += value;
     document.getElementById("hype").innerText = hype;
 }
 
-function movePlayer(){
-    const cell = path[position];
-    player.style.left = cell.x + "px";
-    player.style.top = cell.y + "px";
-}
+/* ===== кубик ===== */
 
 function rollDice(){
 
-    const cube = document.getElementById("cube");
+    const dice =
+        Math.floor(Math.random()*6)+1;
 
-    const number = Math.floor(Math.random()*6)+1;
+    updateHype(dice);
 
-    cube.style.transform =
-        "rotateX("+Math.random()*720+"deg)" +
-        " rotateY("+Math.random()*720+"deg)";
-
-    updateHype(number);
-
-    moveSteps(number);
+    moveSteps(dice);
 }
+
+/* ===== пошаговое движение ===== */
 
 function moveSteps(steps){
 
-    let moves = 0;
+    let moved = 0;
 
-    const interval = setInterval(()=>{
+    const walk = setInterval(()=>{
 
         position++;
 
@@ -73,10 +82,10 @@ function moveSteps(steps){
 
         movePlayer();
 
-        moves++;
+        moved++;
 
-        if(moves >= steps)
-            clearInterval(interval);
+        if(moved === steps)
+            clearInterval(walk);
 
-    },400);
+    },350);
 }
