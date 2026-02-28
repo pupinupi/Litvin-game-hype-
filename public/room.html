@@ -1,25 +1,56 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Game</title>
-<link rel="stylesheet" href="styles.css">
+
+<style>
+
+body{
+background:#111;
+color:white;
+text-align:center;
+font-family:Arial;
+}
+
+#board{
+position:relative;
+width:1024px;
+height:1024px;
+margin:auto;
+background:url("/board.jpg")
+center/contain no-repeat;
+}
+
+.token{
+position:absolute;
+width:32px;
+height:32px;
+border-radius:50%;
+border:3px solid white;
+transform:translate(-50%,-50%);
+transition:.4s;
+}
+
+#cube{
+font-size:50px;
+margin:15px;
+}
+
+</style>
 </head>
 
 <body>
 
-<h2>🔥 HYPE: <span id="hype">0</span></h2>
+<h2>HYPE GAME</h2>
 
-<div id="boardWrapper">
+<div id="board"></div>
 
-<img src="board.jpg" id="board">
+<div id="cube">🎲</div>
+<button id="rollBtn">Бросить</button>
 
-<div id="player"></div>
+<div id="info"></div>
 
-</div>
-
-<div id="dice" onclick="rollDice()">🎲</div>
-
+<script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
 
 </body>
