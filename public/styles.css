@@ -35,3 +35,41 @@ body{
     font-size:40px;
     cursor:pointer;
 }
+
+#dice-container{
+perspective:800px;
+width:120px;
+height:120px;
+margin:auto;
+}
+
+#dice{
+width:100px;
+height:100px;
+position:relative;
+transform-style:preserve-3d;
+transition:transform 1s;
+margin:auto;
+}
+
+.face{
+position:absolute;
+width:100px;
+height:100px;
+background:white;
+border:3px solid black;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:40px;
+font-weight:bold;
+}
+
+/* SIDES */
+
+.one  {transform:rotateY(0deg) translateZ(50px);}
+.two  {transform:rotateY(90deg) translateZ(50px);}
+.three{transform:rotateY(180deg) translateZ(50px);}
+.four {transform:rotateY(-90deg) translateZ(50px);}
+.five {transform:rotateX(90deg) translateZ(50px);}
+.six  {transform:rotateX(-90deg) translateZ(50px);}
