@@ -2,21 +2,42 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Litvin Game</title>
+<title>Game Room</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-<h1>🔥 Litvin Hype Game</h1>
+<h2>HYPE: <span id="hype">0</span></h2>
 
-<button onclick="enterRoom()">Играть</button>
+<div class="board-wrapper">
 
-<script>
-function enterRoom() {
-    window.location.href = "room.html";
-}
-</script>
+<img src="board.jpg" usemap="#image-map" class="board">
+
+<map name="image-map">
+<area shape="poly"
+coords="91,583,102,450,80,345,99,232,99,133,218,97,348,91,500,88,624,102,762,91,895,130,912,204,912,337,909,425,901,580,771,588,641,588,483,594,331,586,218,594,110,597"
+href="#"
+onclick="cellClick()">
+</map>
+
+</div>
+
+<!-- 3D Dice -->
+<div class="scene">
+<div class="cube" id="cube">
+<div class="face front">1</div>
+<div class="face back">6</div>
+<div class="face right">3</div>
+<div class="face left">4</div>
+<div class="face top">5</div>
+<div class="face bottom">2</div>
+</div>
+</div>
+
+<button onclick="rollDice()">🎲 Бросить кубик</button>
+
+<script src="game.js"></script>
 
 </body>
 </html>
