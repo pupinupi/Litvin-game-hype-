@@ -1,3 +1,5 @@
+const dice=document.getElementById("dice");
+
 const socket=io();
 
 const name=localStorage.getItem("name");
