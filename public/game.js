@@ -89,3 +89,14 @@ function moveSteps(steps){
 
     },350);
 }
+
+document.getElementById("board").onclick = function(e){
+
+    const rect = this.getBoundingClientRect();
+
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+
+    console.log(`{ x:${x}, y:${y} },`);
+};
+
