@@ -11,7 +11,7 @@ const cube=document.getElementById("cube");
 const info=document.getElementById("info");
 const rollBtn=document.getElementById("rollBtn");
 
-/* ========= CELLS ========= */
+/* ===== IDEAL CELLS ===== */
 
 const CELLS=[
 {x:108,y:599},
@@ -48,49 +48,49 @@ turn=room.turn;
 render();
 });
 
-socket.on("diceRolled",({dice,room})=>{
-players=room.players;
-turn=room.turn;
+/* ========= STEP MOVE ========= */
 
-animateDice(dice);
+socket.on("startMove",async({playerId,dice})=>{
+
+const player=
+players.find(p=>p.id===playerId);
+
+for(let i=0;i<dice;i++){
+
+player.position++;
+player.position%=CELLS.length;
+
 render();
+
+await sleep(350);
+}
+
 });
 
-/* ========= ROLL ========= */
+/* ========= DICE ========= */
 
 rollBtn.onclick=()=>{
 socket.emit("rollDice",room);
 };
 
-/* ========= DICE ========= */
-
-function animateDice(v){
-
-cube.style.transform="rotate(360deg)";
-
-setTimeout(()=>{
-cube.style.transform="rotate(0)";
-cube.innerText=v;
-info.innerText="Выпало "+v;
-},400);
-
+function sleep(ms){
+return new Promise(r=>setTimeout(r,ms));
 }
 
-/* ========= TOKENS ========= */
+/* ========= RENDER ========= */
 
 function render(){
 
 board.querySelectorAll(".token")
 .forEach(t=>t.remove());
 
-players.forEach((p,i)=>{
+players.forEach(p=>{
 
-const pos=
-CELLS[p.position % CELLS.length];
+const pos=CELLS[p.position];
 
 const token=document.createElement("div");
-
 token.className="token";
+
 token.style.left=pos.x+"px";
 token.style.top=pos.y+"px";
 token.style.background=p.color;
@@ -99,7 +99,7 @@ board.appendChild(token);
 
 });
 
-/* ===== TURN UI ===== */
+/* TURN */
 
 const me=
 players.findIndex(
@@ -112,8 +112,14 @@ info.innerText="🔥 ТВОЙ ХОД";
 }else{
 rollBtn.disabled=true;
 info.innerText=
-"⏳ Ход игрока "+
-(players[turn]?.name||"");
+"Ход: "+(players[turn]?.name||"");
 }
 
 }
+
+/* ========= WIN ========= */
+
+socket.on("gameOver",(winner)=>{
+alert("🏆 Победил "+winner.name+
+" с hype "+winner.hype);
+});
