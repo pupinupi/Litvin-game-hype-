@@ -50,9 +50,28 @@ turn=room.turn;
 render();
 });
 
+function rollDiceAnimation(value){
+
+const rotations={
+1:"rotateX(0deg) rotateY(0deg)",
+2:"rotateY(-90deg)",
+3:"rotateY(-180deg)",
+4:"rotateY(90deg)",
+5:"rotateX(-90deg)",
+6:"rotateX(90deg)"
+};
+
+/* случайное вращение */
+dice.style.transform=
+"rotateX(720deg) rotateY(720deg)";
+
+setTimeout(()=>{
+dice.style.transform=rotations[value];
+},800);
+
+}
 /* ========= STEP MOVE ========= */
 
-socket.on("startMove",async({playerId,dice})=>{
 
 const player=
 players.find(p=>p.id===playerId);
