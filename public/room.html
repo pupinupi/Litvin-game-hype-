@@ -31,27 +31,18 @@ transform:translate(-50%,-50%);
 transition:.4s;
 }
 
-#cube{
-font-size:50px;
-margin:15px;
-}
+<div id="dice-container">
 
-</style>
-</head>
+<div id="dice">
+<div class="face one">1</div>
+<div class="face two">2</div>
+<div class="face three">3</div>
+<div class="face four">4</div>
+<div class="face five">5</div>
+<div class="face six">6</div>
+</div>
 
-<body>
+</div>
 
-<h2>HYPE GAME</h2>
-
-<div id="board"></div>
-
-<div id="cube">🎲</div>
-<button id="rollBtn">Бросить</button>
-
+<button id="rollBtn">🎲 Roll</button>
 <div id="info"></div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="game.js"></script>
-
-</body>
-</html>
