@@ -16,7 +16,8 @@ socket.on("joinRoom",({name,roomCode,color})=>{
 
 if(!rooms[roomCode]){
 rooms[roomCode]={
-players:[]
+players:[],
+turn:0
 };
 }
 
@@ -41,30 +42,38 @@ io.to(roomCode).emit("roomUpdate",room);
 });
 
 
+/* ========= ROLL ========= */
+
 socket.on("rollDice",(roomCode)=>{
 
 const room=rooms[roomCode];
 if(!room) return;
 
-const player=
-room.players.find(p=>p.id===socket.id);
+const currentPlayer=
+room.players[room.turn];
 
-if(!player) return;
+if(!currentPlayer ||
+currentPlayer.id!==socket.id)
+return;
 
-const dice=Math.floor(Math.random()*6)+1;
+const dice=
+Math.floor(Math.random()*6)+1;
 
-player.position+=dice;
+currentPlayer.position+=dice;
 
-if(player.position>20)
-player.position%=21;
+if(currentPlayer.position>20)
+currentPlayer.position%=21;
 
-/* ===== HYPE ===== */
+currentPlayer.hype+=dice;
 
-player.hype+=dice;
+/* NEXT TURN */
+room.turn++;
+if(room.turn>=room.players.length)
+room.turn=0;
 
 io.to(roomCode).emit("diceRolled",{
 dice,
-players:room.players
+room
 });
 
 });
@@ -74,14 +83,19 @@ socket.on("disconnect",()=>{
 
 for(const code in rooms){
 
-rooms[code].players=
-rooms[code].players.filter(
+const room=rooms[code];
+
+room.players=
+room.players.filter(
 p=>p.id!==socket.id
 );
 
+if(room.turn>=room.players.length)
+room.turn=0;
+
 io.to(code).emit(
 "roomUpdate",
-rooms[code]
+room
 );
 
 }
