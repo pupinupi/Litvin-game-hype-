@@ -1,24 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Game</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Litvin Game</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-<h1>Litvin Game 🔥</h1>
+<h1>🔥 Litvin Hype Game</h1>
 
-<h2 id="hype">Хайп: 0</h2>
+<button onclick="enterRoom()">Играть</button>
 
-<button onclick="rollDice()">🎲 Бросить кубик</button>
-
-<div id="board">
-    <img src="board.jpg" width="600">
-    <div id="player"></div>
-</div>
-
-<script src="game.js"></script>
+<script>
+function enterRoom() {
+    window.location.href = "room.html";
+}
+</script>
 
 </body>
 </html>
