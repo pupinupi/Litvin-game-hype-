@@ -52,8 +52,7 @@ if(!player || player.id!==socket.id) return;
 
 const dice=Math.floor(Math.random()*6)+1;
 
-/* отправляем движение */
-io.to(roomCode).emit("startMove",{
+io.to(roomCode).emit("diceRolled",{
 playerId:player.id,
 dice
 });
