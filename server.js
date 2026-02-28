@@ -37,10 +37,8 @@ hype:0
 });
 
 socket.join(roomCode);
-
 io.to(roomCode).emit("roomUpdate",room);
 });
-
 
 /* ========= ROLL ========= */
 
@@ -49,35 +47,40 @@ socket.on("rollDice",(roomCode)=>{
 const room=rooms[roomCode];
 if(!room) return;
 
-const currentPlayer=
-room.players[room.turn];
+const player=room.players[room.turn];
+if(!player || player.id!==socket.id) return;
 
-if(!currentPlayer ||
-currentPlayer.id!==socket.id)
+const dice=Math.floor(Math.random()*6)+1;
+
+/* отправляем движение */
+io.to(roomCode).emit("startMove",{
+playerId:player.id,
+dice
+});
+
+/* обновляем позицию */
+player.position+=dice;
+player.position%=21;
+
+/* HYPE */
+player.hype+=dice*2;
+
+/* WIN */
+if(player.hype>=100){
+io.to(roomCode).emit("gameOver",player);
 return;
-
-const dice=
-Math.floor(Math.random()*6)+1;
-
-currentPlayer.position+=dice;
-
-if(currentPlayer.position>20)
-currentPlayer.position%=21;
-
-currentPlayer.hype+=dice;
+}
 
 /* NEXT TURN */
 room.turn++;
 if(room.turn>=room.players.length)
 room.turn=0;
 
-io.to(roomCode).emit("diceRolled",{
-dice,
-room
-});
+setTimeout(()=>{
+io.to(roomCode).emit("roomUpdate",room);
+},900);
 
 });
-
 
 socket.on("disconnect",()=>{
 
@@ -93,11 +96,7 @@ p=>p.id!==socket.id
 if(room.turn>=room.players.length)
 room.turn=0;
 
-io.to(code).emit(
-"roomUpdate",
-room
-);
-
+io.to(code).emit("roomUpdate",room);
 }
 
 });
