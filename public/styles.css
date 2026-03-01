@@ -1,75 +1,48 @@
 body{
-    text-align:center;
-    font-family:Arial;
-}
-
-/* ===== ПОЛЕ ===== */
-
-#boardWrapper{
-    position:relative;
-    width:900px;
-    margin:auto;
-}
-
-#board{
-    width:100%;
-}
-
-/* ===== ФИШКА ===== */
-
-#player{
-    width:22px;
-    height:22px;
-    background:red;
-    border-radius:50%;
-    position:absolute;
-    transition:0.4s linear;
-    transform:translate(-50%,-50%);
-    border:2px solid white;
-}
-
-/* ===== КУБИК ===== */
-
-#dice{
-    margin-top:20px;
-    font-size:40px;
-    cursor:pointer;
-}
-
-#dice-container{
-perspective:800px;
-width:120px;
-height:120px;
-margin:auto;
-}
-
-#dice{
-width:100px;
-height:100px;
-position:relative;
-transform-style:preserve-3d;
-transition:transform 1s;
-margin:auto;
-}
-
-.face{
-position:absolute;
-width:100px;
-height:100px;
-background:white;
-border:3px solid black;
+margin:0;
+background:black;
 display:flex;
 justify-content:center;
 align-items:center;
-font-size:40px;
-font-weight:bold;
+height:100vh;
 }
 
-/* SIDES */
+#game{
+position:relative;
+}
 
-.one  {transform:rotateY(0deg) translateZ(50px);}
-.two  {transform:rotateY(90deg) translateZ(50px);}
-.three{transform:rotateY(180deg) translateZ(50px);}
-.four {transform:rotateY(-90deg) translateZ(50px);}
-.five {transform:rotateX(90deg) translateZ(50px);}
-.six  {transform:rotateX(-90deg) translateZ(50px);}
+#board{
+width:900px;
+}
+
+.token{
+width:30px;
+height:30px;
+background:red;
+border-radius:50%;
+position:absolute;
+transition:0.2s;
+}
+
+#dice{
+position:absolute;
+right:-120px;
+top:40px;
+font-size:60px;
+transition:transform 1s;
+}
+
+button{
+position:absolute;
+right:-120px;
+top:150px;
+padding:10px 20px;
+}
+
+#hype{
+position:absolute;
+right:-120px;
+top:220px;
+color:white;
+font-size:22px;
+}
