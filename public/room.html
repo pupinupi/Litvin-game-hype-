@@ -1,29 +1,73 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Room</title>
-<link rel="stylesheet" href="style.css">
-</head>
+const socket=io();
 
-<body>
+const token=document.getElementById("player");
+const dice=document.getElementById("dice");
+const hypeText=document.getElementById("hype");
+const rollBtn=document.getElementById("rollBtn");
 
-<div id="game">
+function sleep(ms){
+return new Promise(r=>setTimeout(r,ms));
+}
 
-<img src="board.jpg" id="board">
+/* ТВОИ ИДЕАЛЬНЫЕ КООРДИНАТЫ */
 
-<div id="player" class="token"></div>
+const CELLS=[
+{x:108,y:599},
+{x:110,y:456},
+{x:116,y:359},
+{x:105,y:238},
+{x:110,y:127},
+{x:235,y:97},
+{x:354,y:105},
+{x:500,y:99},
+{x:641,y:97},
+{x:793,y:91},
+{x:912,y:127},
+{x:909,y:246},
+{x:912,y:345},
+{x:903,y:456},
+{x:909,y:575},
+{x:798,y:608},
+{x:638,y:591},
+{x:489,y:605},
+{x:340,y:588},
+{x:210,y:608},
+{x:124,y:633}
+];
 
-<div id="dice">🎲</div>
+let position=0;
 
-<button id="rollBtn">ROLL</button>
+function moveToCell(pos){
+const cell=CELLS[pos%CELLS.length];
+token.style.left=cell.x+"px";
+token.style.top=cell.y+"px";
+}
 
-<div id="hype">HYPE: 0</div>
+async function stepMove(steps){
+for(let i=0;i<steps;i++){
+position++;
+moveToCell(position);
+await sleep(300);
+}
+}
 
-</div>
+rollBtn.onclick=()=>{
+socket.emit("rollDice");
+};
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="room.js"></script>
+socket.on("diceRolled",async(data)=>{
 
-</body>
-</html>
+dice.style.transform=
+`rotateX(${Math.random()*720}deg)
+ rotateY(${Math.random()*720}deg)`;
+
+await stepMove(data.dice);
+
+hypeText.innerText="HYPE: "+data.hype;
+});
+
+socket.on("winner",()=>{
+alert("🔥 ПОБЕДА! HYPE = 100");
+});
+
+moveToCell(0);
