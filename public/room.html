@@ -1,73 +1,98 @@
-const socket=io();
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Game Room</title>
 
-const token=document.getElementById("player");
-const dice=document.getElementById("dice");
-const hypeText=document.getElementById("hype");
-const rollBtn=document.getElementById("rollBtn");
-
-function sleep(ms){
-return new Promise(r=>setTimeout(r,ms));
+<style>
+body{
+margin:0;
+background:#111;
+overflow:hidden;
+font-family:Arial;
 }
 
-/* ТВОИ ИДЕАЛЬНЫЕ КООРДИНАТЫ */
-
-const CELLS=[
-{x:108,y:599},
-{x:110,y:456},
-{x:116,y:359},
-{x:105,y:238},
-{x:110,y:127},
-{x:235,y:97},
-{x:354,y:105},
-{x:500,y:99},
-{x:641,y:97},
-{x:793,y:91},
-{x:912,y:127},
-{x:909,y:246},
-{x:912,y:345},
-{x:903,y:456},
-{x:909,y:575},
-{x:798,y:608},
-{x:638,y:591},
-{x:489,y:605},
-{x:340,y:588},
-{x:210,y:608},
-{x:124,y:633}
-];
-
-let position=0;
-
-function moveToCell(pos){
-const cell=CELLS[pos%CELLS.length];
-token.style.left=cell.x+"px";
-token.style.top=cell.y+"px";
+/* поле */
+#board{
+position:relative;
+width:100vw;
+height:100vh;
+background:url("board.jpg") center/contain no-repeat;
 }
 
-async function stepMove(steps){
-for(let i=0;i<steps;i++){
-position++;
-moveToCell(position);
-await sleep(300);
+/* фишка */
+#player{
+position:absolute;
+width:40px;
+height:40px;
+background:red;
+border-radius:50%;
+transition:0.2s linear;
+z-index:5;
 }
+
+/* кубик */
+#dice{
+position:absolute;
+right:40px;
+top:40px;
+width:80px;
+height:80px;
+background:white;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+font-weight:bold;
+transform-style:preserve-3d;
+transition:transform 1s;
 }
 
-rollBtn.onclick=()=>{
-socket.emit("rollDice");
-};
+/* кнопка */
+#rollBtn{
+position:absolute;
+right:40px;
+top:140px;
+padding:15px 25px;
+font-size:18px;
+cursor:pointer;
+}
 
-socket.on("diceRolled",async(data)=>{
+/* hype */
+#hype{
+position:absolute;
+left:40px;
+top:40px;
+font-size:28px;
+color:#00ff88;
+}
+</style>
+</head>
 
-dice.style.transform=
-`rotateX(${Math.random()*720}deg)
- rotateY(${Math.random()*720}deg)`;
+<body>
 
-await stepMove(data.dice);
+<div id="board">
 
-hypeText.innerText="HYPE: "+data.hype;
-});
+<div id="player"></div>
 
-socket.on("winner",()=>{
-alert("🔥 ПОБЕДА! HYPE = 100");
-});
+<div id="dice">🎲</div>
 
-moveToCell(0);
+<button id="rollBtn">
+Бросить кубик
+</button>
+
+<div id="hype">
+HYPE: 0
+</div>
+
+</div>
+
+<!-- socket -->
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- ЛОГИКА ИГРЫ -->
+<script src="room.js"></script>
+
+</body>
+</html>
