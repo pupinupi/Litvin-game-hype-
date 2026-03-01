@@ -1,48 +1,53 @@
-body{
-margin:0;
-background:black;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-#game{
-position:relative;
-}
-
 #board{
-width:900px;
+position:relative;
+width:1000px;
+margin:auto;
+}
+
+#board img{
+width:100%;
 }
 
 .token{
-width:30px;
-height:30px;
-background:red;
+position:absolute;
+width:22px;
+height:22px;
 border-radius:50%;
-position:absolute;
-transition:0.2s;
+border:2px solid white;
+transform:translate(-50%,-50%);
 }
 
-#dice{
-position:absolute;
-right:-120px;
-top:40px;
-font-size:60px;
-transition:transform 1s;
+/* 3D кубик */
+
+#dice3d{
+perspective:600px;
+width:70px;
+height:70px;
 }
 
-button{
-position:absolute;
-right:-120px;
-top:150px;
-padding:10px 20px;
+#cube{
+width:70px;
+height:70px;
+position:relative;
+transform-style:preserve-3d;
+transition:1s;
 }
 
-#hype{
+.face{
 position:absolute;
-right:-120px;
-top:220px;
-color:white;
+width:70px;
+height:70px;
+background:white;
+border:2px solid black;
+display:flex;
+align-items:center;
+justify-content:center;
 font-size:22px;
 }
+
+.front{transform:translateZ(35px);}
+.back{transform:rotateY(180deg) translateZ(35px);}
+.right{transform:rotateY(90deg) translateZ(35px);}
+.left{transform:rotateY(-90deg) translateZ(35px);}
+.top{transform:rotateX(90deg) translateZ(35px);}
+.bottom{transform:rotateX(-90deg) translateZ(35px);}
