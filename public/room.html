@@ -2,47 +2,28 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>Room</title>
+<link rel="stylesheet" href="style.css">
+</head>
 
-<style>
+<body>
 
-body{
-background:#111;
-color:white;
-text-align:center;
-font-family:Arial;
-}
+<div id="game">
 
-#board{
-position:relative;
-width:1024px;
-height:1024px;
-margin:auto;
-background:url("/board.jpg")
-center/contain no-repeat;
-}
+<img src="board.jpg" id="board">
 
-.token{
-position:absolute;
-width:32px;
-height:32px;
-border-radius:50%;
-border:3px solid white;
-transform:translate(-50%,-50%);
-transition:.4s;
-}
+<div id="player" class="token"></div>
 
-<div id="dice-container">
+<div id="dice">🎲</div>
 
-<div id="dice">
-<div class="face one">1</div>
-<div class="face two">2</div>
-<div class="face three">3</div>
-<div class="face four">4</div>
-<div class="face five">5</div>
-<div class="face six">6</div>
-</div>
+<button id="rollBtn">ROLL</button>
+
+<div id="hype">HYPE: 0</div>
 
 </div>
 
-<button id="rollBtn">🎲 Roll</button>
-<div id="info"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="room.js"></script>
+
+</body>
+</html>
