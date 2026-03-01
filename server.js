@@ -8,98 +8,51 @@ const io=new Server(server);
 
 app.use(express.static("public"));
 
-const rooms={};
+const players={};
 
 io.on("connection",(socket)=>{
 
-socket.on("joinRoom",({name,roomCode,color})=>{
-
-if(!rooms[roomCode]){
-rooms[roomCode]={
-players:[],
-turn:0
-};
-}
-
-const room=rooms[roomCode];
-
-if(room.players.find(p=>p.color===color)){
-socket.emit("colorTaken");
-return;
-}
-
-room.players.push({
+players[socket.id]={
 id:socket.id,
-name,
-color,
 position:0,
 hype:0
-});
+};
 
-socket.join(roomCode);
-io.to(roomCode).emit("roomUpdate",room);
-});
+socket.emit("init",players[socket.id]);
 
-/* ========= ROLL ========= */
+socket.on("rollDice",()=>{
 
-socket.on("rollDice",(roomCode)=>{
-
-const room=rooms[roomCode];
-if(!room) return;
-
-const player=room.players[room.turn];
-if(!player || player.id!==socket.id) return;
+const player=players[socket.id];
+if(!player)return;
 
 const dice=Math.floor(Math.random()*6)+1;
 
-io.to(roomCode).emit("diceRolled",{
-playerId:player.id,
-dice
+player.position+=dice;
+player.hype+=dice*5;
+
+if(player.hype>100)
+player.hype=100;
+
+io.emit("diceRolled",{
+id:player.id,
+dice,
+position:player.position,
+hype:player.hype
 });
 
-/* обновляем позицию */
-player.position+=dice;
-player.position%=21;
-
-/* HYPE */
-player.hype+=dice*2;
-
-/* WIN */
 if(player.hype>=100){
-io.to(roomCode).emit("gameOver",player);
-return;
+io.emit("winner",player.id);
 }
-
-/* NEXT TURN */
-room.turn++;
-if(room.turn>=room.players.length)
-room.turn=0;
-
-setTimeout(()=>{
-io.to(roomCode).emit("roomUpdate",room);
-},900);
-
 });
 
 socket.on("disconnect",()=>{
-
-for(const code in rooms){
-
-const room=rooms[code];
-
-room.players=
-room.players.filter(
-p=>p.id!==socket.id
-);
-
-if(room.turn>=room.players.length)
-room.turn=0;
-
-io.to(code).emit("roomUpdate",room);
-}
-
+delete players[socket.id];
 });
 
 });
 
-server.listen(process.env.PORT||3000);
+const PORT=process.env.PORT||3000;
+
+server.listen(PORT,()=>{
+console.log("Server running");
+});
