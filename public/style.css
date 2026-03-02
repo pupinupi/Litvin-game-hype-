@@ -4,18 +4,22 @@ color:white;
 text-align:center;
 font-family:Arial;
 margin:0;
+overflow:hidden;
+}
+
+h2{
+margin:10px;
 }
 
 #board{
-position:relative;
 width:95vw;
 max-width:900px;
+aspect-ratio:1/1;
 margin:auto;
-}
+position:relative;
 
-#boardImg{
-width:100%;
-display:block;
+background:url("/board.jpg") center/contain no-repeat;
+border:4px solid orange;
 }
 
 canvas{
@@ -26,13 +30,22 @@ width:100%;
 height:100%;
 }
 
-button{
-font-size:20px;
-padding:10px 25px;
-margin:15px;
+/* SCANDAL POPUP */
+#scandal{
+position:fixed;
+top:40%;
+left:50%;
+transform:translate(-50%,-50%) scale(0);
+
+background:red;
+color:white;
+padding:25px;
+font-size:26px;
+border-radius:12px;
+transition:.4s;
+z-index:999;
 }
 
-#players{
-font-size:20px;
-margin-top:10px;
+#scandal.show{
+transform:translate(-50%,-50%) scale(1);
 }
