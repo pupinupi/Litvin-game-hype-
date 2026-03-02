@@ -1,125 +1,92 @@
-const express=require("express");
-const http=require("http");
-const {Server}=require("socket.io");
-
-const app=express();
-const server=http.createServer(app);
-const io=new Server(server);
+const express = require("express");
+const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
 
 app.use(express.static("public"));
 
-const rooms={};
+let rooms = {};
 
-io.on("connection",socket=>{
+io.on("connection", socket => {
 
-socket.on("joinRoom",data=>{
+socket.on("joinRoom", data => {
 
-const {room,name,color}=data;
+if(!rooms[data.room])
+    rooms[data.room] = [];
 
-if(!rooms[room])
-rooms[room]={players:[],turn:0};
-
-rooms[room].players.push({
-id:socket.id,
-name,
-color,
-pos:0,
-hype:0,
-skip:false
+rooms[data.room].push({
+    id: socket.id,
+    name:data.name,
+    color:data.color,
+    pos:0,
+    hype:0
 });
 
-socket.join(room);
+socket.join(data.room);
 
-io.to(room).emit(
-"updatePlayers",
-rooms[room].players
+io.to(data.room).emit(
+    "updatePlayers",
+    rooms[data.room]
 );
-
 });
 
 
-socket.on("rollDice",room=>{
+socket.on("rollDice", room => {
 
-const game=rooms[room];
-if(!game)return;
+const players = rooms[room];
+if(!players) return;
 
-let player=game.players[game.turn];
-
-if(player.id!==socket.id)return;
-
-if(player.skip){
-player.skip=false;
-nextTurn(game,room);
-return;
-}
-
-const dice=Math.floor(Math.random()*6)+1;
+const dice = Math.floor(Math.random()*6)+1;
+const index =
+players.findIndex(p=>p.id===socket.id);
 
 io.to(room).emit("startMove",{
-player:game.turn,
-steps:dice
+    player:index,
+    steps:dice
 });
-
 });
 
 
 socket.on("finishMove",(room,index)=>{
 
-const game=rooms[room];
-const p=game.players[index];
+const player = rooms[room][index];
 
-function applyCell(p,room){
+player.hype += 10;
 
-const scandalCards=[
-"🔥 Перегрел аудиторию —1 хайп",
-"🫣 Громкий заголовок —2 хайп",
-"😱 Это монтаж —3 хайп",
-"#️⃣ Меня взломали —3 хайп у всех",
-"😮 Подписчики в шоке —2 хайп",
-"🤫 Удаляй пока не поздно —1 хайп",
-"🙄 Это контент —5 хайп и пропуск хода"
-];
-
-const cells=[
-"start","+3","+2","scandal","risk","+2",
-"scandal","+3","+5","zero",
-"jail","+3","risk","+3","skip",
-"+2","scandal","+8","zero","+4"
-];
-
-let cell=cells[p.pos];
-
-if(cell.startsWith("+"))
-p.hype+=Number(cell.replace("+",""));
-
-if(cell==="skip")p.skip=true;
-
-if(cell==="zero")p.hype=0;
-
-if(cell==="jail"){
-p.hype=Math.floor(p.hype/2);
-p.skip=true;
-}
-
-if(cell==="risk"){
-let r=Math.floor(Math.random()*6)+1;
-p.hype+=r<=3?-5:5;
-}
-
-if(cell==="scandal"){
-
-let text=
-scandalCards[
-Math.floor(Math.random()*scandalCards.length)
-];
-
-p.hype-=3;
-
+// случайный скандал
+if(Math.random()<0.3){
 io.to(room).emit(
 "scandalPopup",
-text
+`${player.name} попал в скандал 😱`
+);
+player.hype -= 5;
+}
+
+io.to(room).emit(
+"updatePlayers",
+rooms[room]
+);
+});
+
+
+socket.on("disconnect",()=>{
+
+for(const room in rooms){
+rooms[room]=rooms[room]
+.filter(p=>p.id!==socket.id);
+
+io.to(room).emit(
+"updatePlayers",
+rooms[room]
 );
 }
 
-if(p.hype<0)p.hype=0;
-}
+});
+
+});
+
+const PORT = process.env.PORT || 3000;
+
+http.listen(PORT,()=>{
+console.log("Server started "+PORT);
+});
