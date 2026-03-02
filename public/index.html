@@ -1,15 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>🔥 ЛИТВИН — ПУТЬ К ХАЙПУ</h1>
+
 <input id="name" placeholder="Имя">
-<button onclick="start()">Играть</button>
+<input id="room" placeholder="Код комнаты">
+
+<select id="color">
+<option value="yellow">Жёлтая</option>
+<option value="red">Красная</option>
+<option value="blue">Синяя</option>
+<option value="purple">Фиолетовая</option>
+</select>
+
+<button onclick="join()">Войти</button>
 
 <script>
-function start(){
-localStorage.name=
-document.getElementById("name").value;
-
-localStorage.room="room1";
-localStorage.color=
-"#"+Math.floor(Math.random()*16777215).toString(16);
-
-location="/game";
+function join(){
+localStorage.name=name.value;
+localStorage.room=room.value;
+localStorage.color=color.value;
+location="game.html";
 }
 </script>
+
+</body>
+</html>
