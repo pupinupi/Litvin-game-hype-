@@ -9,192 +9,124 @@ socket.emit("joinRoom",{room,name,color});
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 1024;
-canvas.height = 1024;
+const boardImg = document.getElementById("boardImg");
 
-let players = [];
+let players=[];
 
 /*
-==============================
-ТОЧНЫЕ КООРДИНАТЫ ПОЛЯ
-СТАРТ → ВВЕРХ → ВПРАВО → ВНИЗ → ВЛЕВО
-==============================
+КООРДИНАТЫ ТВОЕГО ПОЛЯ
+1024x1024
 */
-
-const path = [
-
-/* СТАРТ (низ слева) */
+const path=[
 [116,605],
-
-/* ВВЕРХ */
 [120,520],
 [120,440],
 [120,350],
 [120,260],
 [120,170],
-
-/* ВПРАВО */
 [232,102],
 [348,97],
 [494,99],
 [644,102],
 [771,86],
-
-/* ВНИЗ */
 [898,122],
 [912,238],
 [909,354],
 [917,450],
 [901,575],
-
-/* ВЛЕВО */
 [773,597],
 [641,605],
 [500,597],
-[345,608],
-[232,610]
-
+[345,608]
 ];
 
 
-// =======================
-// SOCKET EVENTS
-// =======================
+// ✅ ЖДЁМ ЗАГРУЗКУ ПОЛЯ
+boardImg.onload=()=>{
 
-socket.on("updatePlayers", p=>{
-players = p;
+canvas.width=boardImg.clientWidth;
+canvas.height=boardImg.clientHeight;
+
 draw();
-updateUI();
+};
+
+
+socket.on("updatePlayers",p=>{
+players=p;
+draw();
 });
 
-socket.on("diceResult", n=>{
+socket.on("diceResult",n=>{
 showDice(n);
 });
-
-socket.on("turn", t=>{
-highlightTurn(t);
-});
-
-
-// =======================
-// БРОСОК
-// =======================
 
 function roll(){
 socket.emit("rollDice",room);
 }
 
 
-// =======================
-// РИСОВАНИЕ
-// =======================
+// ================= DRAW =================
 
 function draw(){
 
-ctx.clearRect(0,0,1024,1024);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-players.forEach((pl,index)=>{
+const scaleX=canvas.width/1024;
+const scaleY=canvas.height/1024;
 
-let cell = path[pl.pos];
+players.forEach((pl,i)=>{
 
-if(!cell) return;
+let pos=path[pl.pos];
+if(!pos)return;
 
-let offset = index * 18;
+let x=pos[0]*scaleX;
+let y=pos[1]*scaleY;
 
-/* подсветка */
 ctx.beginPath();
-ctx.arc(cell[0],cell[1],28,0,6.28);
-ctx.fillStyle="rgba(255,255,255,0.2)";
+ctx.arc(x+i*15,y-i*15,15,0,6.28);
+ctx.fillStyle=pl.color;
 ctx.fill();
 
-/* фишка */
-ctx.beginPath();
-ctx.arc(
-cell[0]+offset,
-cell[1]-offset,
-20,
-0,
-6.28
-);
-
-ctx.fillStyle = pl.color;
-ctx.fill();
-
-/* имя */
 ctx.fillStyle="white";
-ctx.font="16px Arial";
-ctx.fillText(
-pl.name,
-cell[0]-30,
-cell[1]-35
-);
+ctx.fillText(pl.name,x-20,y-25);
 
 });
 
+updateUI();
 }
 
 
-// =======================
-// UI ИГРОКОВ
-// =======================
+// ================= UI =================
 
 function updateUI(){
 
-const div=document.getElementById("players");
-
-div.innerHTML="";
-
-players.forEach(p=>{
-
-div.innerHTML+=`
-<div>
-${p.name}
-🔥 ${p.hype}
-</div>
-`;
-
-});
+playersDiv.innerHTML=
+players.map(p=>
+`${p.name} 🔥${p.hype}`
+).join("<br>");
 
 }
 
 
-// =======================
-// КУБИК
-// =======================
+// ================= DICE =================
 
 function showDice(n){
 
-const dice=document.createElement("div");
+const d=document.createElement("div");
 
-dice.style.position="fixed";
-dice.style.top="50%";
-dice.style.left="50%";
-dice.style.transform="translate(-50%,-50%)";
-dice.style.fontSize="60px";
-dice.style.background="#111";
-dice.style.padding="40px";
-dice.style.border="3px solid orange";
-dice.style.borderRadius="15px";
-dice.innerHTML="🎲 "+n;
+d.style.position="fixed";
+d.style.top="50%";
+d.style.left="50%";
+d.style.transform="translate(-50%,-50%)";
+d.style.fontSize="60px";
+d.style.background="#111";
+d.style.padding="30px";
+d.style.border="3px solid orange";
+d.style.borderRadius="12px";
 
-document.body.appendChild(dice);
+d.innerHTML="🎲 "+n;
 
-setTimeout(()=>dice.remove(),1500);
-}
+document.body.appendChild(d);
 
-
-// =======================
-// ПОДСВЕТКА ХОДА
-// =======================
-
-function highlightTurn(turn){
-
-document.querySelectorAll("#players div")
-.forEach((el,i)=>{
-
-el.style.color =
-i===turn ? "orange":"white";
-
-});
-
+setTimeout(()=>d.remove(),1500);
 }
