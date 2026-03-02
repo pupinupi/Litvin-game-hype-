@@ -1,22 +1,167 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Game</title>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+
+body{
+background:#111;
+color:white;
+font-family:Arial;
+text-align:center;
+}
+
+#board{
+width:600px;
+height:600px;
+margin:auto;
+position:relative;
+background:url("/board.png") center/cover;
+border:3px solid orange;
+}
+
+.player{
+width:28px;
+height:28px;
+border-radius:50%;
+position:absolute;
+transition:.3s;
+border:2px solid white;
+}
+
+#dice{
+margin-top:20px;
+font-size:25px;
+padding:15px 30px;
+cursor:pointer;
+}
+
+#players{
+margin-top:20px;
+}
+
+</style>
 </head>
 
 <body>
 
-<h2 id="turnInfo">Ожидание игроков...</h2>
+<h2>🔥 ЛИТВИН — ПУТЬ К ХАЙПУ</h2>
 
-<canvas id="board" width="1024" height="1024"></canvas>
+<div id="board"></div>
 
-<button id="diceBtn" onclick="roll()">🎲 Бросить кубик</button>
+<button id="dice">🎲 БРОСИТЬ</button>
 
 <div id="players"></div>
-<div id="popup"></div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="game.js"></script>
+<script>
+
+const socket = io();
+
+const room = localStorage.room;
+const name = localStorage.name;
+const color = localStorage.color;
+
+socket.emit("joinRoom",{room,name,color});
+
+let state=null;
+
+/* ==== КООРДИНАТЫ ПОЛЯ ==== */
+/* старт -> вверх -> вправо -> вниз -> влево */
+
+const cells=[
+{x:20,y:520},
+{x:20,y:450},
+{x:20,y:380},
+{x:20,y:310},
+{x:20,y:240},
+
+{x:120,y:20},
+{x:220,y:20},
+{x:320,y:20},
+{x:420,y:20},
+{x:520,y:20},
+
+{x:520,y:120},
+{x:520,y:220},
+{x:520,y:320},
+{x:520,y:420},
+{x:520,y:520},
+
+{x:420,y:520},
+{x:320,y:520},
+{x:220,y:520},
+{x:120,y:520},
+{x:70,y:520}
+];
+
+/* ====================== */
+
+socket.on("gameStart",(data)=>{
+state=data;
+createPlayers();
+});
+
+socket.on("state",(data)=>{
+state=data;
+updatePlayers();
+});
+
+document.getElementById("dice").onclick=()=>{
+socket.emit("rollDice",room);
+};
+
+/* ===== создание фишек ===== */
+
+function createPlayers(){
+
+const board=document.getElementById("board");
+board.innerHTML="";
+
+state.players.forEach(p=>{
+
+const div=document.createElement("div");
+
+div.className="player";
+div.id=p.id;
+div.style.background=p.color;
+
+board.appendChild(div);
+
+});
+
+updatePlayers();
+}
+
+/* ===== обновление ===== */
+
+function updatePlayers(){
+
+const info=document.getElementById("players");
+info.innerHTML="";
+
+state.players.forEach(p=>{
+
+const el=document.getElementById(p.id);
+
+if(!el) return;
+
+const pos=cells[p.pos];
+
+el.style.left=pos.x+"px";
+el.style.top=pos.y+"px";
+
+info.innerHTML+=
+`<div style="color:${p.color}">
+${p.name} — 🔥 ${p.hype}
+</div>`;
+});
+}
+
+</script>
 
 </body>
 </html>
