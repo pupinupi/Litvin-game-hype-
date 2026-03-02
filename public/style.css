@@ -6,28 +6,20 @@ font-family:Arial;
 margin:0;
 }
 
-h2{
-margin:15px;
-}
-
-/* ПОЛЕ */
 #board{
+position:relative;
 width:90vw;
 max-width:700px;
-aspect-ratio:1/1;
 margin:auto;
-border:3px solid orange;
-position:relative;
-
-/* 🔥 ВАЖНО */
-background-image:url("/board.jpg");
-background-size:contain;
-background-position:center;
-background-repeat:no-repeat;
-background-color:black;
 }
 
-/* CANVAS */
+/* 🔥 ТВОЁ ПОЛЕ */
+#boardImg{
+width:100%;
+display:block;
+}
+
+/* 🔥 СЛОЙ ФИШЕК */
 canvas{
 position:absolute;
 top:0;
