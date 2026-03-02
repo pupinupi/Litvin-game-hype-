@@ -9,8 +9,8 @@ font-family:Arial;
 width:700px;
 height:700px;
 margin:auto;
-position:relative;
 background:url("/board.jpg") center/contain no-repeat;
+position:relative;
 border:3px solid orange;
 }
 
@@ -23,7 +23,7 @@ height:100%;
 }
 
 #dice{
-font-size:70px;
+font-size:80px;
 transition:.4s;
 margin:10px;
 }
