@@ -68,25 +68,17 @@ socket.on("finishMove",(room,index)=>{
 const game=rooms[room];
 const p=game.players[index];
 
-applyCell(p);
+function applyCell(p,room){
 
-io.to(room).emit(
-"updatePlayers",
-game.players
-);
-
-nextTurn(game,room);
-
-});
-
-
-function nextTurn(game,room){
-game.turn=(game.turn+1)%game.players.length;
-io.to(room).emit("turn",game.turn);
-}
-
-
-function applyCell(p){
+const scandalCards=[
+"🔥 Перегрел аудиторию —1 хайп",
+"🫣 Громкий заголовок —2 хайп",
+"😱 Это монтаж —3 хайп",
+"#️⃣ Меня взломали —3 хайп у всех",
+"😮 Подписчики в шоке —2 хайп",
+"🤫 Удаляй пока не поздно —1 хайп",
+"🙄 Это контент —5 хайп и пропуск хода"
+];
 
 const cells=[
 "start","+3","+2","scandal","risk","+2",
@@ -100,8 +92,9 @@ let cell=cells[p.pos];
 if(cell.startsWith("+"))
 p.hype+=Number(cell.replace("+",""));
 
-if(cell==="zero")p.hype=0;
 if(cell==="skip")p.skip=true;
+
+if(cell==="zero")p.hype=0;
 
 if(cell==="jail"){
 p.hype=Math.floor(p.hype/2);
@@ -113,9 +106,20 @@ let r=Math.floor(Math.random()*6)+1;
 p.hype+=r<=3?-5:5;
 }
 
-if(p.hype<0)p.hype=0;
+if(cell==="scandal"){
+
+let text=
+scandalCards[
+Math.floor(Math.random()*scandalCards.length)
+];
+
+p.hype-=3;
+
+io.to(room).emit(
+"scandalPopup",
+text
+);
 }
 
-});
-
-server.listen(process.env.PORT||3000);
+if(p.hype<0)p.hype=0;
+}
