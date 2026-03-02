@@ -4,15 +4,17 @@ const room=localStorage.room;
 const canvas=document.getElementById("board");
 const ctx=canvas.getContext("2d");
 
+const diceBtn=document.getElementById("diceBtn");
+
 const img=new Image();
 img.src="board.jpg";
 
 /*
-СТАРТ →
-⬆ ВВЕРХ
-➡ ВПРАВО
-⬇ ВНИЗ
-⬅ ВЛЕВО
+СТАРТ
+⬆
+➡
+⬇
+⬅
 */
 
 const cells=[
@@ -45,7 +47,7 @@ const cells=[
 
 ];
 
-let state=null;
+let state;
 
 img.onload=draw;
 
@@ -58,7 +60,7 @@ if(!state)return;
 
 state.players.forEach(p=>{
 
-let c=cells[p.pos];
+const c=cells[p.pos];
 
 ctx.shadowColor=p.color;
 ctx.shadowBlur=25;
@@ -77,27 +79,51 @@ function roll(){
 socket.emit("rollDice",room);
 }
 
-socket.on("state",(s)=>{
+socket.on("gameStart",s=>{
 state=s;
 draw();
-update();
 });
 
-socket.on("scandal",(t)=>{
+socket.on("state",s=>{
+
+state=s;
+draw();
+updateUI();
+});
+
+socket.on("scandal",t=>{
 popup.innerHTML=
 `<div class="card">${t}</div>`;
+
+setTimeout(()=>popup.innerHTML="",2500);
 });
 
-socket.on("winner",(n)=>{
+socket.on("winner",n=>{
 alert("🏆 Победил "+n);
 });
 
-function update(){
+function updateUI(){
 
 players.innerHTML="";
 
-state.players.forEach(p=>{
+state.players.forEach((p,i)=>{
+
 players.innerHTML+=
-`<div>${p.name}: ${p.hype}</div>`;
+`<div>
+${i===state.turn?"👉":""}
+${p.name}: ${p.hype}
+</div>`;
 });
+
+const me=state.players.find(
+p=>p.id===socket.id
+);
+
+diceBtn.disabled=
+state.players[state.turn].id
+!==socket.id;
+
+turnInfo.innerText=
+"Ход: "+
+state.players[state.turn].name;
 }
