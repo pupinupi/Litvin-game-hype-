@@ -1,8 +1,8 @@
-const socket=io();
+const socket = io();
 
-const room=localStorage.room;
-const name=localStorage.name;
-const color=localStorage.color;
+const room = localStorage.room;
+const name = localStorage.name;
+const color = localStorage.color;
 
 socket.emit("joinRoom",{room,name,color});
 
@@ -13,14 +13,49 @@ const board=document.getElementById("boardImg");
 let players=[];
 let moving=false;
 
-/* ТОЧНЫЙ ПУТЬ */
+
+/*
+==============================
+ПРАВИЛЬНЫЙ ОБХОД ПОЛЯ
+СТАРТ → ВВЕРХ → ВПРАВО → ВНИЗ → ВЛЕВО
+==============================
+*/
+
 const path=[
-[116,605],[116,520],[116,440],[116,350],
-[116,260],[116,170],
-[232,102],[348,97],[494,99],[644,102],[771,86],
-[898,122],[912,238],[909,354],[917,450],[901,575],
-[773,597],[641,605],[500,597],[345,608]
+
+// START
+[120,600],
+
+// ⬆ ВВЕРХ
+[120,520],
+[120,440],
+[120,360],
+[120,280],
+[120,200],
+
+// ➡ ВПРАВО
+[240,120],
+[360,110],
+[500,105],
+[640,110],
+[780,100],
+
+// ⬇ ВНИЗ
+[900,160],
+[910,260],
+[910,360],
+[910,460],
+[900,580],
+
+// ⬅ ВЛЕВО
+[780,600],
+[640,610],
+[500,610],
+[360,610]
 ];
+
+
+// ================= LOAD =================
 
 board.onload=()=>{
 canvas.width=board.clientWidth;
@@ -28,10 +63,13 @@ canvas.height=board.clientHeight;
 draw();
 };
 
+
+// ================= SOCKET =================
+
 socket.on("updatePlayers",p=>{
 players=p;
 draw();
-showPlayers();
+updateUI();
 });
 
 
@@ -40,27 +78,20 @@ socket.on("startMove",async data=>{
 if(moving)return;
 moving=true;
 
-await animateMove(
-data.player,
-data.steps
-);
+await animateMove(data.player,data.steps);
 
-socket.emit(
-"finishMove",
-room,
-data.player
-);
+socket.emit("finishMove",room,data.player);
 
 moving=false;
 });
 
 
-function roll(){
-socket.emit("rollDice",room);
-}
+socket.on("scandalPopup",text=>{
+showScandal(text);
+});
 
 
-/* ===== АНИМАЦИЯ ===== */
+// ================= MOVE =================
 
 async function animateMove(index,steps){
 
@@ -80,7 +111,7 @@ return new Promise(r=>setTimeout(r,ms));
 }
 
 
-/* ===== DRAW ===== */
+// ================= DRAW =================
 
 function draw(){
 
@@ -107,13 +138,52 @@ ctx.fill();
 }
 
 
-/* ===== ХАЙП ===== */
+// ================= UI =================
 
-function showPlayers(){
+function updateUI(){
 
 playersDiv.innerHTML=
 players.map(p=>
 `${p.name} 🔥 ${p.hype}`
 ).join("<br>");
 
+}
+
+
+// ================= SCANDAL WINDOW =================
+
+function showScandal(text){
+
+const bg=document.createElement("div");
+
+bg.style.position="fixed";
+bg.style.top=0;
+bg.style.left=0;
+bg.style.width="100%";
+bg.style.height="100%";
+bg.style.background="rgba(0,0,0,0.7)";
+bg.style.display="flex";
+bg.style.alignItems="center";
+bg.style.justifyContent="center";
+bg.style.zIndex=999;
+
+const box=document.createElement("div");
+
+box.style.background="#111";
+box.style.padding="40px";
+box.style.border="3px solid orange";
+box.style.borderRadius="15px";
+box.style.fontSize="24px";
+box.innerHTML=`🔥 СКАНДАЛ<br><br>${text}`;
+
+bg.appendChild(box);
+
+document.body.appendChild(bg);
+
+setTimeout(()=>bg.remove(),3000);
+}
+
+
+function roll(){
+socket.emit("rollDice",room);
 }
