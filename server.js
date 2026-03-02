@@ -1,14 +1,22 @@
 const express = require("express");
 const http = require("http");
-const {Server} = require("socket.io");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static("public"));
+app.use(express.static(__dirname + "/public"));
 
-const rooms = {};
+app.get("/", (req,res)=>{
+res.sendFile(__dirname+"/public/index.html");
+});
+
+app.get("/game", (req,res)=>{
+res.sendFile(__dirname+"/public/game.html");
+});
+
+const rooms={};
 
 const scandalCards=[
 {text:"🔥 перегрел аудиторию",hype:-1},
@@ -36,6 +44,8 @@ const {room,name,color}=data;
 if(!rooms[room])
 rooms[room]={players:[],turn:0};
 
+if(rooms[room].players.length>=4)return;
+
 rooms[room].players.push({
 id:socket.id,
 name,
@@ -43,17 +53,16 @@ color,
 pos:0,
 hype:0,
 skip:false,
-gainTurn:0
+gain:0
 });
 
 socket.join(room);
-io.to(room).emit("updateLobby",rooms[room]);
 });
 
 socket.on("startGame",(room)=>{
 const r=rooms[room];
 r.players.sort(()=>Math.random()-0.5);
-io.to(room).emit("gameStart",r);
+io.to(room).emit("state",r);
 });
 
 socket.on("rollDice",(room)=>{
@@ -63,7 +72,7 @@ const p=r.players[r.turn];
 
 if(p.skip){
 p.skip=false;
-nextTurn(room);
+next(room);
 return;
 }
 
@@ -74,22 +83,22 @@ p.pos=(p.pos+dice)%20;
 applyCell(room,p);
 
 io.to(room).emit("state",r,dice);
-nextTurn(room);
+
+next(room);
 });
 
 function applyCell(room,p){
 
-p.gainTurn=0;
-
+p.gain=0;
 const cell=cells[p.pos];
 
 if(cell.startsWith("+")){
-let val=parseInt(cell.replace("+",""));
-p.hype+=val;
-p.gainTurn+=val;
+let v=parseInt(cell.replace("+",""));
+p.hype+=v;
+p.gain+=v;
 }
 
-if(cell==="court") p.skip=true;
+if(cell==="court")p.skip=true;
 
 if(cell==="jail"){
 p.hype=Math.floor(p.hype/2);
@@ -101,11 +110,12 @@ let r=Math.floor(Math.random()*6)+1;
 if(r<=3)p.hype=Math.max(0,p.hype-5);
 else{
 p.hype+=5;
-p.gainTurn+=5;
+p.gain+=5;
 }
 }
 
 if(cell==="scandal"){
+
 let card=scandalCards[
 Math.floor(Math.random()*scandalCards.length)
 ];
@@ -123,15 +133,16 @@ if(card.skip)p.skip=true;
 io.to(room).emit("scandal",card.text);
 }
 
-if(p.gainTurn>=8)p.skip=true;
+if(p.gain>=8)p.skip=true;
 
 if(p.hype>=100)
 io.to(room).emit("winner",p.name);
 }
 
-function nextTurn(room){
-const r=rooms[room];
-r.turn=(r.turn+1)%r.players.length;
+function next(room){
+rooms[room].turn=
+(rooms[room].turn+1)%
+rooms[room].players.length;
 }
 
 });
