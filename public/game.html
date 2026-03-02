@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="rules">
+<h2>Правила</h2>
+<button onclick="start()">Начать игру</button>
+</div>
+
+<canvas id="board" width="1024" height="1024"></canvas>
+
+<button onclick="roll()">🎲 Кубик</button>
+
+<div id="players"></div>
+<div id="popup"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>
