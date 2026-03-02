@@ -1,0 +1,26 @@
+body{
+background:#111;
+color:white;
+text-align:center;
+font-family:Arial;
+}
+
+canvas{
+border:3px solid white;
+}
+
+.card{
+position:absolute;
+top:40%;
+left:40%;
+background:#222;
+padding:25px;
+border-radius:15px;
+font-size:24px;
+animation:pop .4s;
+}
+
+@keyframes pop{
+from{transform:scale(0)}
+to{transform:scale(1)}
+}
