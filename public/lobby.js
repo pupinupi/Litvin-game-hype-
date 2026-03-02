@@ -12,5 +12,5 @@ room:room.value,
 color:color.value
 });
 
-location="game.html";
+location="/game";
 }
