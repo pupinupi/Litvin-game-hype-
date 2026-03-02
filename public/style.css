@@ -1,19 +1,22 @@
 body{
-background:#111;
+background:#000;
 color:white;
 text-align:center;
+font-family:Arial;
+}
+
+#board{
+width:90vw;
+max-width:700px;
+aspect-ratio:1/1;
+margin:auto;
+background:url("board.jpg") center/cover no-repeat;
+position:relative;
+border:3px solid orange;
 }
 
 canvas{
-border:3px solid white;
-}
-
-.card{
 position:absolute;
-top:40%;
-left:40%;
-background:#222;
-padding:25px;
-border-radius:15px;
-font-size:22px;
+width:100%;
+height:100%;
 }
