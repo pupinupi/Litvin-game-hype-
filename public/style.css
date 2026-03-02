@@ -1,29 +1,29 @@
 body{
-background:black;
-color:white;
-text-align:center;
-font-family:Arial;
+  background:black;
+  color:white;
+  text-align:center;
+  font-family:Arial;
 }
 
 #board{
-width:700px;
-height:700px;
-margin:auto;
-background:url("/board.jpg") center/contain no-repeat;
-position:relative;
-border:3px solid orange;
+  width:700px;
+  height:700px;
+  margin:auto;
+  position:relative;
+  background:url("/board.jpg") center/contain no-repeat;
+  border:3px solid orange;
 }
 
 canvas{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
 }
 
 #dice{
-font-size:80px;
-transition:.4s;
-margin:10px;
+  font-size:80px;
+  transition:0.4s;
+  margin:10px;
 }
