@@ -1,63 +1,200 @@
-const socket=io();
+const socket = io();
 
-const room=localStorage.room;
-const name=localStorage.name;
-const color=localStorage.color;
+const room = localStorage.room;
+const name = localStorage.name;
+const color = localStorage.color;
 
 socket.emit("joinRoom",{room,name,color});
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-canvas.width=1024;
-canvas.height=1024;
+canvas.width = 1024;
+canvas.height = 1024;
 
-let players=[];
+let players = [];
 
-const path=[
-[120,880],[120,720],[120,560],[120,400],
-[120,240],[240,120],[400,120],[560,120],
-[720,120],[880,240],[880,400],[880,560],
-[880,720],[720,880],[560,880],[400,880],
-[240,880],[120,880],[120,720],[120,560]
+/*
+==============================
+ТОЧНЫЕ КООРДИНАТЫ ПОЛЯ
+СТАРТ → ВВЕРХ → ВПРАВО → ВНИЗ → ВЛЕВО
+==============================
+*/
+
+const path = [
+
+/* СТАРТ (низ слева) */
+[116,605],
+
+/* ВВЕРХ */
+[120,520],
+[120,440],
+[120,350],
+[120,260],
+[120,170],
+
+/* ВПРАВО */
+[232,102],
+[348,97],
+[494,99],
+[644,102],
+[771,86],
+
+/* ВНИЗ */
+[898,122],
+[912,238],
+[909,354],
+[917,450],
+[901,575],
+
+/* ВЛЕВО */
+[773,597],
+[641,605],
+[500,597],
+[345,608],
+[232,610]
+
 ];
 
-socket.on("updatePlayers",p=>{
-players=p;
+
+// =======================
+// SOCKET EVENTS
+// =======================
+
+socket.on("updatePlayers", p=>{
+players = p;
 draw();
-showPlayers();
+updateUI();
 });
 
-socket.on("diceResult",n=>{
-alert("🎲 "+n);
+socket.on("diceResult", n=>{
+showDice(n);
 });
+
+socket.on("turn", t=>{
+highlightTurn(t);
+});
+
+
+// =======================
+// БРОСОК
+// =======================
 
 function roll(){
 socket.emit("rollDice",room);
 }
 
+
+// =======================
+// РИСОВАНИЕ
+// =======================
+
 function draw(){
 
 ctx.clearRect(0,0,1024,1024);
 
-players.forEach(pl=>{
+players.forEach((pl,index)=>{
 
-let pos=path[pl.pos];
+let cell = path[pl.pos];
 
+if(!cell) return;
+
+let offset = index * 18;
+
+/* подсветка */
 ctx.beginPath();
-ctx.arc(pos[0],pos[1],20,0,6.28);
-ctx.fillStyle=pl.color;
+ctx.arc(cell[0],cell[1],28,0,6.28);
+ctx.fillStyle="rgba(255,255,255,0.2)";
 ctx.fill();
 
+/* фишка */
+ctx.beginPath();
+ctx.arc(
+cell[0]+offset,
+cell[1]-offset,
+20,
+0,
+6.28
+);
+
+ctx.fillStyle = pl.color;
+ctx.fill();
+
+/* имя */
 ctx.fillStyle="white";
-ctx.fillText(pl.name,pos[0]-20,pos[1]-25);
+ctx.font="16px Arial";
+ctx.fillText(
+pl.name,
+cell[0]-30,
+cell[1]-35
+);
 
 });
+
 }
 
-function showPlayers(){
-playersDiv.innerHTML=
-players.map(p=>
-`${p.name} — 🔥${p.hype}`
-).join("<br>");
+
+// =======================
+// UI ИГРОКОВ
+// =======================
+
+function updateUI(){
+
+const div=document.getElementById("players");
+
+div.innerHTML="";
+
+players.forEach(p=>{
+
+div.innerHTML+=`
+<div>
+${p.name}
+🔥 ${p.hype}
+</div>
+`;
+
+});
+
+}
+
+
+// =======================
+// КУБИК
+// =======================
+
+function showDice(n){
+
+const dice=document.createElement("div");
+
+dice.style.position="fixed";
+dice.style.top="50%";
+dice.style.left="50%";
+dice.style.transform="translate(-50%,-50%)";
+dice.style.fontSize="60px";
+dice.style.background="#111";
+dice.style.padding="40px";
+dice.style.border="3px solid orange";
+dice.style.borderRadius="15px";
+dice.innerHTML="🎲 "+n;
+
+document.body.appendChild(dice);
+
+setTimeout(()=>dice.remove(),1500);
+}
+
+
+// =======================
+// ПОДСВЕТКА ХОДА
+// =======================
+
+function highlightTurn(turn){
+
+document.querySelectorAll("#players div")
+.forEach((el,i)=>{
+
+el.style.color =
+i===turn ? "orange":"white";
+
+});
+
 }
