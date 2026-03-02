@@ -1,17 +1,15 @@
-const socket=io();
+const socket = io();
 
-const room=localStorage.getItem("room");
-const color=localStorage.getItem("color");
-const name=localStorage.getItem("name");
+const room = localStorage.getItem("room");
+const color = localStorage.getItem("color");
+const name = localStorage.getItem("name");
 
-socket.emit("joinRoom",
-{name,roomCode:room,color});
+socket.emit("joinRoom",{name,roomCode:room,color});
 
 const board=document.getElementById("board");
 const cube=document.getElementById("cube");
 const rollBtn=document.getElementById("rollBtn");
 const hypeText=document.getElementById("hype");
-const info=document.getElementById("info");
 
 /* ===== КООРДИНАТЫ ===== */
 
@@ -40,36 +38,43 @@ const CELLS=[
 ];
 
 let players=[];
-let turn=0;
+let animating=false;
 
-/* ===== ОБНОВЛЕНИЕ ===== */
+/* ================= ROOM UPDATE ================= */
 
 socket.on("roomUpdate",(room)=>{
 players=room.players;
-turn=room.turn;
 render();
 });
 
-/* ===== РЕЗУЛЬТАТ КУБИКА ===== */
+/* ================= DICE RESULT ================= */
 
-socket.on("diceResult",
-async({dice,room})=>{
+socket.on("diceResult",async(data)=>{
 
-players=room.players;
-turn=room.turn;
+if(animating) return;
+animating=true;
+
+const {dice,playerId}=data;
 
 animateDice(dice);
 
-await moveStep(
-players.find(p=>p.color===color),
-dice
-);
+const player=
+players.find(p=>p.id===playerId);
+
+for(let i=0;i<dice;i++){
+
+player.position++;
+player.position%=CELLS.length;
 
 render();
 
+await sleep(350);
+}
+
+animating=false;
 });
 
-/* ===== 3D КУБИК ===== */
+/* ================= 3D DICE ================= */
 
 function animateDice(v){
 
@@ -89,36 +94,16 @@ const map={
 
 cube.style.transform=map[v];
 
-},800);
+},700);
 }
 
-/* ===== ПОШАГОВО ===== */
-
-async function moveStep(player,steps){
-
-for(let i=0;i<steps;i++){
-
-player.position++;
-player.position%=CELLS.length;
-
-render();
-
-await sleep(350);
-}
-
-}
-
-function sleep(ms){
-return new Promise(r=>setTimeout(r,ms));
-}
-
-/* ===== КНОПКА ===== */
+/* ================= BUTTON ================= */
 
 rollBtn.onclick=()=>{
 socket.emit("rollDice",room);
 };
 
-/* ===== RENDER ===== */
+/* ================= RENDER ================= */
 
 function render(){
 
@@ -127,27 +112,25 @@ board.querySelectorAll(".token")
 
 players.forEach(p=>{
 
-const pos=CELLS[p.position];
+const cell=CELLS[p.position];
 
-const t=document.createElement("div");
-t.className="token";
+const token=document.createElement("div");
+token.className="token";
 
-t.style.left=pos.x+"px";
-t.style.top=pos.y+"px";
-t.style.background=p.color;
+token.style.left=cell.x+"px";
+token.style.top=cell.y+"px";
+token.style.background=p.color;
 
-board.appendChild(t);
+board.appendChild(token);
 
-if(p.color===color)
-hypeText.innerText=
-"HYPE: "+p.hype;
+if(p.color===color){
+hypeText.innerText="HYPE: "+p.hype;
+}
 
 });
 
 }
 
-/* ===== ПОБЕДА ===== */
-
-socket.on("gameOver",(winner)=>{
-alert("🏆 Победа "+winner.name);
-});
+function sleep(ms){
+return new Promise(r=>setTimeout(r,ms));
+}
