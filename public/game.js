@@ -7,9 +7,8 @@ canvas.height = 1024;
 const boardImg = new Image();
 boardImg.src = "board.jpg";
 
-/* ===== НАСТРОЙКИ ===== */
-
 const WIN_SCORE = 70;
+
 const selectedColor = "blue";
 
 const colors = {
@@ -28,8 +27,7 @@ let player = {
 let moving = false;
 let gainedThisTurn = 0;
 
-/* ===== КООРДИНАТЫ ===== */
-
+/* КООРДИНАТЫ */
 const path = [
 { x:89,y:599,type:"start"},
 { x:88,y:459,type:"+3"},
@@ -53,26 +51,33 @@ const path = [
 { x:228,y:600,type:"+4"}
 ];
 
-/* ===== СКАНДАЛЫ ===== */
-
+/* СКАНДАЛЫ */
 const scandals = [
 { text:"Перегрел аудиторию 🔥", effect:-1 },
 { text:"Громкий заголовок 🫣", effect:-2 },
 { text:"Это монтаж 😱", effect:-3 },
-{ text:"Меня взломали #️⃣ (всем -3)", effect:"all-3" },
+{ text:"Меня взломали #️⃣", effect:-3 },
 { text:"Подписчики в шоке 😮", effect:-4 },
 { text:"Удаляй пока не поздно 🤫", effect:-5 },
-{ text:"Это контент, вы не понимаете 🙄 (пропуск хода)", effect:"skip" }
+{ text:"Это контент, вы не понимаете 🙄", effect:"skip" }
 ];
 
-/* ===== ОТРИСОВКА ===== */
-
+/* ОТРИСОВКА */
 function draw(){
+
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(boardImg,0,0,1024,1024);
 
   const p = path[player.pos];
 
+  /* подсветка клетки */
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 30, 0, Math.PI*2);
+  ctx.strokeStyle = "yellow";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  /* фишка */
   ctx.beginPath();
   ctx.arc(p.x, p.y, 18, 0, Math.PI*2);
   ctx.fillStyle = colors[selectedColor];
@@ -82,8 +87,7 @@ function draw(){
   ctx.stroke();
 }
 
-/* ===== ДВИЖЕНИЕ ===== */
-
+/* ДВИЖЕНИЕ */
 async function move(steps){
 
   if(moving) return;
@@ -103,8 +107,7 @@ async function move(steps){
   moving = false;
 }
 
-/* ===== ЛОГИКА ===== */
-
+/* ЛОГИКА */
 function applyCell(){
 
   const cell = path[player.pos].type;
@@ -113,32 +116,26 @@ function applyCell(){
     const val = Number(cell.replace("+",""));
     player.hype += val;
     gainedThisTurn += val;
+    finalizeTurn();
   }
 
-  if(cell === "risk"){
-    const r = Math.floor(Math.random()*6)+1;
-    if(r <= 3){
-      player.hype += 10;
-      gainedThisTurn += 10;
-    } else {
-      player.hype -= 4;
-    }
+  else if(cell === "risk"){
+    openRisk();
   }
 
-  if(cell === "block"){
+  else if(cell === "block"){
     player.hype -= 5;
+    finalizeTurn();
   }
 
-  if(cell === "skip"){
+  else if(cell === "skip"){
     player.skip = true;
+    finalizeTurn();
   }
 
-  if(cell === "scandal"){
+  else if(cell === "scandal"){
     openScandal();
-    return;
   }
-
-  finalizeTurn();
 }
 
 function finalizeTurn(){
@@ -151,7 +148,7 @@ function finalizeTurn(){
   }
 
   if(player.hype >= WIN_SCORE){
-    alert("ПОБЕДА! Ты набрал 70 хайпа 🎉");
+    alert("ПОБЕДА! 70 хайпа 🎉");
     location.reload();
   }
 
@@ -163,40 +160,9 @@ function updateUI(){
       "Хайп: " + player.hype;
 }
 
-/* ===== СКАНДАЛ МОДАЛКА ===== */
-
-const modal = document.getElementById("scandalModal");
-const scandalText = document.getElementById("scandalText");
-const closeScandal = document.getElementById("closeScandal");
-
-function openScandal(){
-
-  const random = scandals[Math.floor(Math.random()*scandals.length)];
-
-  scandalText.innerText = random.text;
-  modal.style.display = "flex";
-
-  closeScandal.onclick = function(){
-
-    if(random.effect === "all-3"){
-      player.hype -= 3;
-    }
-    else if(random.effect === "skip"){
-      player.skip = true;
-    }
-    else{
-      player.hype += random.effect;
-    }
-
-    modal.style.display = "none";
-    finalizeTurn();
-  }
-}
-
-/* ===== КУБИК ===== */
-
+/* КУБИК */
+const dice = document.getElementById("dice");
 const diceBtn = document.getElementById("diceBtn");
-const diceValue = document.getElementById("diceValue");
 
 diceBtn.onclick = () => {
 
@@ -208,13 +174,59 @@ diceBtn.onclick = () => {
     return;
   }
 
-  const roll = Math.floor(Math.random()*6)+1;
-  diceValue.innerText = roll;
+  dice.classList.add("spin");
 
-  move(roll);
+  setTimeout(()=>{
+    dice.classList.remove("spin");
+    const roll = Math.floor(Math.random()*6)+1;
+    dice.innerText = roll;
+    move(roll);
+  },600);
 };
 
-/* ===== ЗАГРУЗКА ===== */
+/* RISK */
+const riskModal = document.getElementById("riskModal");
+const closeRisk = document.getElementById("closeRisk");
+
+function openRisk(){
+  riskModal.style.display = "flex";
+}
+
+closeRisk.onclick = function(){
+
+  const r = Math.floor(Math.random()*6)+1;
+
+  if(r <= 3){
+    player.hype += 10;
+    gainedThisTurn += 10;
+  } else {
+    player.hype -= 4;
+  }
+
+  riskModal.style.display = "none";
+  finalizeTurn();
+};
+
+/* СКАНДАЛ */
+const scandalModal = document.getElementById("scandalModal");
+const scandalText = document.getElementById("scandalText");
+const closeScandal = document.getElementById("closeScandal");
+
+function openScandal(){
+  const random = scandals[Math.floor(Math.random()*scandals.length)];
+  scandalText.innerText = random.text;
+  scandalModal.style.display = "flex";
+
+  closeScandal.onclick = function(){
+    if(random.effect === "skip"){
+      player.skip = true;
+    } else {
+      player.hype += random.effect;
+    }
+    scandalModal.style.display = "none";
+    finalizeTurn();
+  }
+};
 
 boardImg.onload = () => {
   draw();
