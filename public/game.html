@@ -13,18 +13,34 @@
 
   <div class="bottom-panel">
       <div id="hypeDisplay">Хайп: 0</div>
-      <button id="diceBtn">🎲 Бросить кубик</button>
-      <div id="diceValue">-</div>
+
+      <div class="dice-wrapper">
+          <div id="dice" class="dice">🎲</div>
+          <button id="diceBtn">Бросить</button>
+      </div>
+
   </div>
 
 </div>
 
-<!-- Модалка Скандал -->
+<!-- Скандал -->
 <div id="scandalModal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content red">
       <h2>СКАНДАЛ 😱</h2>
       <p id="scandalText"></p>
       <button id="closeScandal">Продолжить</button>
+  </div>
+</div>
+
+<!-- Risk -->
+<div id="riskModal" class="modal">
+  <div class="modal-content blue">
+      <h2>РИСК 🎲</h2>
+      <p>
+      1–3 → +10 хайпа<br>
+      4–6 → −4 хайпа
+      </p>
+      <button id="closeRisk">Понял</button>
   </div>
 </div>
 
