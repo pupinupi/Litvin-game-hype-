@@ -94,5 +94,41 @@ async function move(steps){
     draw();
   }
 applyCell();
+  
   moving=false;
+}
+
+function applyCell(){
+
+  const cell = path[player.pos].type;
+
+  if(!cell) return;
+
+  // +X хайп
+  if(cell.startsWith("+")){
+    player.hype += Number(cell.replace("+",""));
+  }
+
+  // риск
+  if(cell === "risk"){
+    const r = Math.floor(Math.random()*6)+1;
+    player.hype += (r <= 3 ? -5 : 5);
+  }
+
+  // обнуление
+  if(cell === "loseAll"){
+    player.hype = 0;
+  }
+
+  // половина
+  if(cell === "halfSkip"){
+    player.hype = Math.floor(player.hype / 2);
+  }
+
+  // не ниже 0
+  if(player.hype < 0){
+    player.hype = 0;
+  }
+
+  draw();
 }
