@@ -93,6 +93,6 @@ async function move(steps){
 
     draw();
   }
-
+applyCell();
   moving=false;
 }
