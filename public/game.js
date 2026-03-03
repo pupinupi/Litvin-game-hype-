@@ -7,8 +7,10 @@ canvas.height = 1024;
 const boardImg = new Image();
 boardImg.src = "board.jpg";
 
-/* ===== ВЫБОР ЦВЕТА (пока вручную для теста) ===== */
-const selectedColor = "blue"; // red / yellow / blue / purple
+/* ===== НАСТРОЙКИ ===== */
+
+const WIN_SCORE = 70;
+const selectedColor = "blue";
 
 const colors = {
   red: "#ff3b3b",
@@ -17,8 +19,6 @@ const colors = {
   purple: "#a13bff"
 };
 
-/* ===== ИГРОК ===== */
-
 let player = {
   pos: 0,
   hype: 0,
@@ -26,8 +26,9 @@ let player = {
 };
 
 let moving = false;
+let gainedThisTurn = 0;
 
-/* ===== ТВОИ ТОЧНЫЕ КООРДИНАТЫ ===== */
+/* ===== КООРДИНАТЫ ===== */
 
 const path = [
 { x:89,y:599,type:"start"},
@@ -39,8 +40,8 @@ const path = [
 { x:358,y:93,type:"scandal"},
 { x:498,y:92,type:"+3"},
 { x:638,y:106,type:"+5"},
-{ x:805,y:102,type:"loseAll"},
-{ x:925,y:129,type:"half"},
+{ x:805,y:102,type:"block"},
+{ x:925,y:129,type:"+3"},
 { x:923,y:238,type:"+3"},
 { x:940,y:353,type:"risk"},
 { x:927,y:466,type:"+3"},
@@ -48,14 +49,25 @@ const path = [
 { x:783,y:605,type:"+2"},
 { x:641,y:604,type:"scandal"},
 { x:501,y:609,type:"+8"},
-{ x:350,y:610,type:"loseAll"},
+{ x:350,y:610,type:"block"},
 { x:228,y:600,type:"+4"}
+];
+
+/* ===== СКАНДАЛЫ ===== */
+
+const scandals = [
+{ text:"Перегрел аудиторию 🔥", effect:-1 },
+{ text:"Громкий заголовок 🫣", effect:-2 },
+{ text:"Это монтаж 😱", effect:-3 },
+{ text:"Меня взломали #️⃣ (всем -3)", effect:"all-3" },
+{ text:"Подписчики в шоке 😮", effect:-4 },
+{ text:"Удаляй пока не поздно 🤫", effect:-5 },
+{ text:"Это контент, вы не понимаете 🙄 (пропуск хода)", effect:"skip" }
 ];
 
 /* ===== ОТРИСОВКА ===== */
 
 function draw(){
-
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(boardImg,0,0,1024,1024);
 
@@ -76,17 +88,14 @@ async function move(steps){
 
   if(moving) return;
   moving = true;
+  gainedThisTurn = 0;
 
   for(let i=0;i<steps;i++){
-
-    await new Promise(r=>setTimeout(r,300));
-
+    await new Promise(r=>setTimeout(r,250));
     player.pos++;
-
     if(player.pos >= path.length){
       player.pos = 0;
     }
-
     draw();
   }
 
@@ -94,39 +103,94 @@ async function move(steps){
   moving = false;
 }
 
-/* ===== ЛОГИКА КЛЕТОК ===== */
+/* ===== ЛОГИКА ===== */
 
 function applyCell(){
 
   const cell = path[player.pos].type;
 
   if(cell.startsWith("+")){
-    player.hype += Number(cell.replace("+",""));
+    const val = Number(cell.replace("+",""));
+    player.hype += val;
+    gainedThisTurn += val;
   }
 
   if(cell === "risk"){
     const r = Math.floor(Math.random()*6)+1;
-    player.hype += (r <= 3 ? -5 : 5);
+    if(r <= 3){
+      player.hype += 10;
+      gainedThisTurn += 10;
+    } else {
+      player.hype -= 4;
+    }
   }
 
-  if(cell === "loseAll"){
-    player.hype = 0;
-  }
-
-  if(cell === "half"){
-    player.hype = Math.floor(player.hype/2);
+  if(cell === "block"){
+    player.hype -= 5;
   }
 
   if(cell === "skip"){
     player.skip = true;
   }
 
-  if(player.hype < 0){
-    player.hype = 0;
+  if(cell === "scandal"){
+    openScandal();
+    return;
   }
 
+  finalizeTurn();
+}
+
+function finalizeTurn(){
+
+  if(player.hype < 0) player.hype = 0;
+
+  if(gainedThisTurn > 8){
+    player.skip = true;
+    alert("Перегрев! Пропуск хода 🔥");
+  }
+
+  if(player.hype >= WIN_SCORE){
+    alert("ПОБЕДА! Ты набрал 70 хайпа 🎉");
+    location.reload();
+  }
+
+  updateUI();
+}
+
+function updateUI(){
   document.getElementById("hypeDisplay").innerText =
       "Хайп: " + player.hype;
+}
+
+/* ===== СКАНДАЛ МОДАЛКА ===== */
+
+const modal = document.getElementById("scandalModal");
+const scandalText = document.getElementById("scandalText");
+const closeScandal = document.getElementById("closeScandal");
+
+function openScandal(){
+
+  const random = scandals[Math.floor(Math.random()*scandals.length)];
+
+  scandalText.innerText = random.text;
+  modal.style.display = "flex";
+
+  closeScandal.onclick = function(){
+
+    if(random.effect === "all-3"){
+      player.hype -= 3;
+    }
+    else if(random.effect === "skip"){
+      player.skip = true;
+    }
+    else{
+      player.hype += random.effect;
+    }
+
+    modal.style.display = "none";
+    finalizeTurn();
+  }
 }
 
 /* ===== КУБИК ===== */
@@ -134,7 +198,7 @@ function applyCell(){
 const diceBtn = document.getElementById("diceBtn");
 const diceValue = document.getElementById("diceValue");
 
-diceBtn.onclick = async () => {
+diceBtn.onclick = () => {
 
   if(moving) return;
 
@@ -145,7 +209,6 @@ diceBtn.onclick = async () => {
   }
 
   const roll = Math.floor(Math.random()*6)+1;
-
   diceValue.innerText = roll;
 
   move(roll);
@@ -155,4 +218,5 @@ diceBtn.onclick = async () => {
 
 boardImg.onload = () => {
   draw();
+  updateUI();
 };
