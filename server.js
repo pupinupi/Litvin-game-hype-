@@ -1,11 +1,143 @@
-const express=require("express");
-const app=express();
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 app.use(express.static("public"));
 
-app.get("/",(req,res)=>{
-res.sendFile(__dirname+"/public/game.html");
+const rooms = {};
+
+function createRoom(code, hostId) {
+  rooms[code] = {
+    host: hostId,
+    players: [],
+    turnIndex: 0,
+    started: false
+  };
+}
+
+function nextTurn(room) {
+  room.turnIndex++;
+  if (room.turnIndex >= room.players.length) {
+    room.turnIndex = 0;
+  }
+}
+
+io.on("connection", (socket) => {
+
+  socket.on("joinRoom", ({ name, roomCode, color }) => {
+
+    if (!rooms[roomCode]) {
+      createRoom(roomCode, socket.id);
+    }
+
+    const room = rooms[roomCode];
+
+    if (room.players.length >= 4) {
+      socket.emit("roomFull");
+      return;
+    }
+
+    if (room.started) {
+      socket.emit("alreadyStarted");
+      return;
+    }
+
+    const player = {
+      id: socket.id,
+      name,
+      color,
+      hype: 0,
+      position: 0,
+      skip: false
+    };
+
+    room.players.push(player);
+    socket.join(roomCode);
+
+    io.to(roomCode).emit("updateLobby", {
+      players: room.players,
+      host: room.host
+    });
+  });
+
+  socket.on("startGame", (roomCode) => {
+
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    if (socket.id !== room.host) return;
+    if (room.players.length < 2) return;
+
+    room.started = true;
+
+    // случайная очередь
+    room.players.sort(() => Math.random() - 0.5);
+    room.turnIndex = 0;
+
+    io.to(roomCode).emit("gameStarted", {
+      players: room.players,
+      currentTurn: room.players[0].id
+    });
+  });
+
+  socket.on("rollDice", (roomCode) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    const currentPlayer = room.players[room.turnIndex];
+    if (socket.id !== currentPlayer.id) return;
+
+    const roll = Math.floor(Math.random() * 6) + 1;
+
+    currentPlayer.position += roll;
+    if (currentPlayer.position >= 20) {
+      currentPlayer.position = 0;
+      currentPlayer.hype += 4;
+      io.to(roomCode).emit("message", 
+        `Игрок ${currentPlayer.name} прошёл старт (+4 хайпа и доп. ход)`
+      );
+      io.to(roomCode).emit("updateGame", room);
+      return;
+    }
+
+    io.to(roomCode).emit("diceRolled", roll);
+
+    if (currentPlayer.skip) {
+      currentPlayer.skip = false;
+      io.to(roomCode).emit("message",
+        `Игрок ${currentPlayer.name} пропускает ход`
+      );
+      nextTurn(room);
+    } else {
+      nextTurn(room);
+    }
+
+    io.to(roomCode).emit("updateGame", room);
+  });
+
+  socket.on("disconnect", () => {
+    for (let code in rooms) {
+      const room = rooms[code];
+      room.players = room.players.filter(p => p.id !== socket.id);
+
+      if (room.players.length === 0) {
+        delete rooms[code];
+      } else {
+        io.to(code).emit("updateLobby", {
+          players: room.players,
+          host: room.host
+        });
+      }
+    }
+  });
+
 });
 
-app.listen(process.env.PORT||3000,
-()=>console.log("RUN"));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
