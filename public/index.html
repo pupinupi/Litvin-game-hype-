@@ -3,33 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HYPE LOBBY</title>
+  <title>Hype Lobby</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="lobbyBody">
 
-  <div class="lobbyCard">
-    <h1>🔥 HYPE GAME</h1>
+<div class="lobbyCard">
+  <h1>🔥 HYPE GAME</h1>
 
-    <input id="nameInput" placeholder="Ваше имя">
+  <input id="nameInput" placeholder="Ваше имя" />
+  <input id="roomInput" placeholder="Код комнаты" />
 
-    <input id="roomInput" placeholder="Код комнаты">
-
-    <div class="colorPicker">
-      <div class="colorOption" data-color="cyan"></div>
-      <div class="colorOption" data-color="red"></div>
-      <div class="colorOption" data-color="orange"></div>
-      <div class="colorOption" data-color="purple"></div>
-    </div>
-
-    <button id="joinBtn">Войти</button>
-
-    <div id="lobbyPlayers"></div>
-
-    <button id="startBtn" class="hidden">Начать игру</button>
+  <div class="colorPicker">
+    <div class="colorOption" data-color="#00cfff"></div>
+    <div class="colorOption" data-color="#ff2b2b"></div>
+    <div class="colorOption" data-color="#ff8c00"></div>
+    <div class="colorOption" data-color="#a020f0"></div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="lobby.js"></script>
+  <button id="joinBtn">Войти</button>
+
+  <div id="lobbyPlayers"></div>
+  <button id="startBtn" class="hidden">Начать игру</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="lobby.js"></script>
+
 </body>
 </html>
