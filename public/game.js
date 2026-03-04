@@ -25,11 +25,10 @@ let player = {
 
 let moving = false;
 let gainedThisTurn = 0;
-
-/* ===== ВСПЛЫВАЮЩИЕ ЧИСЛА ===== */
 let floatingTexts = [];
 
 /* ===== КООРДИНАТЫ ===== */
+
 const path = [
 { x:89,y:599,type:"start"},
 { x:88,y:459,type:"+3"},
@@ -53,18 +52,26 @@ const path = [
 { x:228,y:600,type:"+4"}
 ];
 
-/* ===== СКАНДАЛЫ ===== */
-const scandals = [
-{ text:"Перегрел аудиторию 🔥", effect:-1 },
-{ text:"Громкий заголовок 🫣", effect:-2 },
-{ text:"Это монтаж 😱", effect:-3 },
-{ text:"Меня взломали #️⃣", effect:-3 },
-{ text:"Подписчики в шоке 😮", effect:-4 },
-{ text:"Удаляй пока не поздно 🤫", effect:-5 },
-{ text:"Это контент, вы не понимаете 🙄", effect:"skip" }
-];
+/* ===== ВСПЛЫВАЮЩИЕ ЧИСЛА ===== */
+
+function addFloatingText(text, x, y, color){
+  floatingTexts.push({ text, x, y, alpha:1, color });
+}
+
+function animateFloating(){
+  floatingTexts.forEach(t=>{
+    t.y -= 1;
+    t.alpha -= 0.02;
+  });
+  floatingTexts = floatingTexts.filter(t=>t.alpha > 0);
+  draw();
+  requestAnimationFrame(animateFloating);
+}
+
+animateFloating();
 
 /* ===== ОТРИСОВКА ===== */
+
 function draw(){
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -72,14 +79,12 @@ function draw(){
 
   const p = path[player.pos];
 
-  /* подсветка клетки */
   ctx.beginPath();
   ctx.arc(p.x, p.y, 30, 0, Math.PI*2);
   ctx.strokeStyle = "yellow";
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  /* фишка */
   ctx.beginPath();
   ctx.arc(p.x, p.y, 18, 0, Math.PI*2);
   ctx.fillStyle = colors[selectedColor];
@@ -88,7 +93,6 @@ function draw(){
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  /* всплывающие числа */
   floatingTexts.forEach(t=>{
     ctx.globalAlpha = t.alpha;
     ctx.fillStyle = t.color;
@@ -98,34 +102,8 @@ function draw(){
   });
 }
 
-/* ===== АНИМАЦИЯ ЧИСЕЛ ===== */
-function addFloatingText(text, x, y, color){
-
-  floatingTexts.push({
-    text,
-    x,
-    y,
-    alpha:1,
-    color
-  });
-}
-
-function animateFloating(){
-
-  floatingTexts.forEach(t=>{
-    t.y -= 1;
-    t.alpha -= 0.02;
-  });
-
-  floatingTexts = floatingTexts.filter(t=>t.alpha > 0);
-
-  draw();
-  requestAnimationFrame(animateFloating);
-}
-
-animateFloating();
-
 /* ===== ДВИЖЕНИЕ ===== */
+
 async function move(steps){
 
   if(moving) return;
@@ -146,6 +124,7 @@ async function move(steps){
 }
 
 /* ===== ЛОГИКА ===== */
+
 function applyCell(){
 
   const cell = path[player.pos].type;
@@ -157,10 +136,6 @@ function applyCell(){
     gainedThisTurn += val;
     addFloatingText("+"+val, p.x, p.y-30, "#00ff88");
     finalizeTurn();
-  }
-
-  else if(cell === "risk"){
-    openRisk();
   }
 
   else if(cell === "block"){
@@ -176,6 +151,10 @@ function applyCell(){
 
   else if(cell === "scandal"){
     openScandal();
+  }
+
+  else if(cell === "risk"){
+    openRiskEvent();   // ← НОВАЯ ЛОГИКА
   }
 }
 
@@ -193,73 +172,76 @@ function finalizeTurn(){
     location.reload();
   }
 
-  updateUI();
-}
-
-function updateUI(){
   document.getElementById("hypeDisplay").innerText =
       "Хайп: " + player.hype;
 }
 
-/* ===== RISK ===== */
-const riskModal = document.getElementById("riskModal");
-const closeRisk = document.getElementById("closeRisk");
+/* ===== RISK КАК ОТДЕЛЬНЫЙ ИВЕНТ ===== */
 
-function openRisk(){
-  riskModal.style.display = "flex";
-}
+function openRiskEvent(){
 
-closeRisk.onclick = function(){
+  const result = confirm(
+    "Риск!\n\n1–3 → +10 хайпа\n4–6 → −4 хайпа\n\nБросить кубик риска?"
+  );
 
-  const p = path[player.pos];
-  const r = Math.floor(Math.random()*6)+1;
-
-  if(r <= 3){
-    player.hype += 10;
-    gainedThisTurn += 10;
-    addFloatingText("+10", p.x, p.y-30, "#00ff88");
-  } else {
-    player.hype -= 4;
-    addFloatingText("-4", p.x, p.y-30, "#ff4444");
+  if(!result){
+    finalizeTurn();
+    return;
   }
 
-  riskModal.style.display = "none";
-  finalizeTurn();
-};
+  const p = path[player.pos];
+
+  const roll = Math.floor(Math.random()*6)+1;
+
+  setTimeout(()=>{
+
+    if(roll <= 3){
+      player.hype += 10;
+      gainedThisTurn += 10;
+      addFloatingText("+10", p.x, p.y-30, "#00ff88");
+      alert("Выпало " + roll + " → +10 хайпа!");
+    } else {
+      player.hype -= 4;
+      addFloatingText("-4", p.x, p.y-30, "#ff4444");
+      alert("Выпало " + roll + " → -4 хайпа!");
+    }
+
+    finalizeTurn();
+
+  },300);
+}
 
 /* ===== СКАНДАЛ ===== */
-const scandalModal = document.getElementById("scandalModal");
-const scandalText = document.getElementById("scandalText");
-const closeScandal = document.getElementById("closeScandal");
 
 function openScandal(){
+
+  const scandals = [
+    { text:"Перегрел аудиторию 🔥", effect:-1 },
+    { text:"Громкий заголовок 🫣", effect:-2 },
+    { text:"Это монтаж 😱", effect:-3 },
+    { text:"Меня взломали #️⃣", effect:-3 },
+    { text:"Подписчики в шоке 😮", effect:-4 },
+    { text:"Удаляй пока не поздно 🤫", effect:-5 },
+    { text:"Это контент, вы не понимаете 🙄", effect:"skip" }
+  ];
 
   const random = scandals[Math.floor(Math.random()*scandals.length)];
   const p = path[player.pos];
 
   if(random.effect === "skip"){
-    scandalText.innerText = random.text + "\nПропуск хода!";
+    alert(random.text + "\nПропуск хода!");
+    player.skip = true;
   } else {
-    scandalText.innerText = random.text + "\nХайп: " + random.effect;
+    alert(random.text + "\nХайп: " + random.effect);
+    player.hype += random.effect;
+    addFloatingText(random.effect, p.x, p.y-30, "#ff4444");
   }
 
-  scandalModal.style.display = "flex";
-
-  closeScandal.onclick = function(){
-
-    if(random.effect === "skip"){
-      player.skip = true;
-    } else {
-      player.hype += random.effect;
-      addFloatingText(random.effect, p.x, p.y-30, "#ff4444");
-    }
-
-    scandalModal.style.display = "none";
-    finalizeTurn();
-  }
-};
+  finalizeTurn();
+}
 
 /* ===== КУБИК ===== */
+
 const dice = document.getElementById("dice");
 const diceBtn = document.getElementById("diceBtn");
 
@@ -285,5 +267,4 @@ diceBtn.onclick = () => {
 
 boardImg.onload = () => {
   draw();
-  updateUI();
 };
