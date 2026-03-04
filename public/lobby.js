@@ -10,19 +10,22 @@ const startBtn = document.getElementById("startBtn");
 const lobbyPlayers = document.getElementById("lobbyPlayers");
 
 document.querySelectorAll(".colorOption").forEach(el => {
-  el.onclick = () => {
-    document.querySelectorAll(".colorOption").forEach(c => c.classList.remove("selected"));
+  el.addEventListener("click", () => {
+    document.querySelectorAll(".colorOption")
+      .forEach(c => c.classList.remove("selected"));
+
     el.classList.add("selected");
     selectedColor = el.dataset.color;
-  };
+  });
 });
 
-joinBtn.onclick = () => {
+joinBtn.addEventListener("click", () => {
+
   const name = nameInput.value.trim();
   const room = roomInput.value.trim();
 
   if (!name || !room || !selectedColor) {
-    alert("Заполните все поля и выберите цвет");
+    alert("Заполните имя, комнату и выберите цвет");
     return;
   }
 
@@ -33,9 +36,11 @@ joinBtn.onclick = () => {
     roomCode: room,
     color: selectedColor
   });
-};
+
+});
 
 socket.on("updateLobby", (data) => {
+
   lobbyPlayers.innerHTML = "";
 
   data.players.forEach(p => {
@@ -53,15 +58,16 @@ socket.on("updateLobby", (data) => {
   } else {
     startBtn.classList.add("hidden");
   }
+
 });
 
-startBtn.onclick = () => {
+startBtn.addEventListener("click", () => {
   socket.emit("startGame", currentRoom);
-};
+});
 
 socket.on("gameStarted", () => {
   window.location.href = "/game.html?room=" + currentRoom;
 });
 
-socket.on("roomFull", () => alert("Комната заполнена (макс 4)"));
+socket.on("roomFull", () => alert("Комната заполнена"));
 socket.on("alreadyStarted", () => alert("Игра уже началась"));
