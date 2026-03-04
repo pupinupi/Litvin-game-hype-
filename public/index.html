@@ -2,41 +2,34 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ХАЙПУ 🎲</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HYPE LOBBY</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="lobbyBody">
 
-  <div id="topPanel">
-    <div id="hypeDisplay">Хайп: 0</div>
-    <div id="progressBar">
-      <div id="progressFill"></div>
+  <div class="lobbyCard">
+    <h1>🔥 HYPE GAME</h1>
+
+    <input id="nameInput" placeholder="Ваше имя">
+
+    <input id="roomInput" placeholder="Код комнаты">
+
+    <div class="colorPicker">
+      <div class="colorOption" data-color="cyan"></div>
+      <div class="colorOption" data-color="red"></div>
+      <div class="colorOption" data-color="orange"></div>
+      <div class="colorOption" data-color="purple"></div>
     </div>
+
+    <button id="joinBtn">Войти</button>
+
+    <div id="lobbyPlayers"></div>
+
+    <button id="startBtn" class="hidden">Начать игру</button>
   </div>
 
-  <canvas id="gameCanvas"></canvas>
-
-  <div id="controls">
-    <div id="dice3d">
-      <div class="face front">1</div>
-      <div class="face back">2</div>
-      <div class="face right">3</div>
-      <div class="face left">4</div>
-      <div class="face top">5</div>
-      <div class="face bottom">6</div>
-    </div>
-    <button id="diceBtn">БРОСИТЬ</button>
-  </div>
-
-  <div id="modalOverlay" class="hidden">
-    <div id="modalBox">
-      <div id="modalTitle"></div>
-      <div id="modalText"></div>
-      <div id="modalButtons"></div>
-    </div>
-  </div>
-
-  <script src="game.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="lobby.js"></script>
 </body>
 </html>
