@@ -1,34 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ХАЙПУ 🎲</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h1>🔥 ЛИТВИН — ПУТЬ К ХАЙПУ</h1>
+  <div id="topPanel">
+    <div id="hypeDisplay">Хайп: 0</div>
+    <div id="progressBar">
+      <div id="progressFill"></div>
+    </div>
+  </div>
 
-<input id="name" placeholder="Имя">
-<input id="room" placeholder="Код комнаты">
+  <canvas id="gameCanvas"></canvas>
 
-<select id="color">
-<option value="yellow">Жёлтая</option>
-<option value="red">Красная</option>
-<option value="blue">Синяя</option>
-<option value="purple">Фиолетовая</option>
-</select>
+  <div id="controls">
+    <div id="dice">?</div>
+    <button id="diceBtn">БРОСИТЬ</button>
+  </div>
 
-<button onclick="join()">Войти</button>
-
-<script>
-function join(){
-localStorage.name=name.value;
-localStorage.room=room.value;
-localStorage.color=color.value;
-location="game.html";
-}
-</script>
-
+  <script src="game.js"></script>
 </body>
 </html>
