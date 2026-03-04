@@ -1,3 +1,4 @@
+// ===== CANVAS =====
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -7,14 +8,17 @@ canvas.height = 1024;
 const boardImg = new Image();
 boardImg.src = "board.jpg";
 
+// ===== НАСТРОЙКИ =====
 const WIN_SCORE = 70;
-const selectedColor = "blue";
+
+// Цвет можно менять: cyan, red, orange, purple
+const selectedColor = "cyan";
 
 const colors = {
-  red: "#ff3b3b",
-  blue: "#3b7bff",
-  yellow: "#ffd93b",
-  purple: "#a13bff"
+  cyan: "#00cfff",
+  red: "#ff2b2b",
+  orange: "#ff8c00",
+  purple: "#a020f0"
 };
 
 let player = {
@@ -27,8 +31,7 @@ let moving = false;
 let gainedThisTurn = 0;
 let floatingTexts = [];
 
-/* ===== КООРДИНАТЫ ===== */
-
+// ===== КООРДИНАТЫ =====
 const path = [
 { x:89,y:599,type:"start"},
 { x:88,y:459,type:"+3"},
@@ -52,8 +55,7 @@ const path = [
 { x:228,y:600,type:"+4"}
 ];
 
-/* ===== ВСПЛЫВАЮЩИЕ ЧИСЛА ===== */
-
+// ===== ВСПЛЫВАЮЩИЕ ЧИСЛА =====
 function addFloatingText(text, x, y, color){
   floatingTexts.push({ text, x, y, alpha:1, color });
 }
@@ -67,11 +69,9 @@ function animateFloating(){
   draw();
   requestAnimationFrame(animateFloating);
 }
-
 animateFloating();
 
-/* ===== ОТРИСОВКА ===== */
-
+// ===== ОТРИСОВКА =====
 function draw(){
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -79,20 +79,32 @@ function draw(){
 
   const p = path[player.pos];
 
+  // подсветка клетки
   ctx.beginPath();
   ctx.arc(p.x, p.y, 30, 0, Math.PI*2);
   ctx.strokeStyle = "yellow";
   ctx.lineWidth = 4;
   ctx.stroke();
 
+  // фишка (объёмная)
+  const gradient = ctx.createRadialGradient(
+    p.x-5, p.y-5, 5,
+    p.x, p.y, 20
+  );
+
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(0.3, colors[selectedColor]);
+  gradient.addColorStop(1, "#000000");
+
   ctx.beginPath();
-  ctx.arc(p.x, p.y, 18, 0, Math.PI*2);
-  ctx.fillStyle = colors[selectedColor];
+  ctx.arc(p.x, p.y, 20, 0, Math.PI*2);
+  ctx.fillStyle = gradient;
   ctx.fill();
   ctx.strokeStyle = "white";
   ctx.lineWidth = 3;
   ctx.stroke();
 
+  // всплывающий хайп
   floatingTexts.forEach(t=>{
     ctx.globalAlpha = t.alpha;
     ctx.fillStyle = t.color;
@@ -102,8 +114,7 @@ function draw(){
   });
 }
 
-/* ===== ДВИЖЕНИЕ ===== */
-
+// ===== ДВИЖЕНИЕ =====
 async function move(steps){
 
   if(moving) return;
@@ -123,8 +134,7 @@ async function move(steps){
   moving = false;
 }
 
-/* ===== ЛОГИКА ===== */
-
+// ===== ЛОГИКА КЛЕТОК =====
 function applyCell(){
 
   const cell = path[player.pos].type;
@@ -146,6 +156,7 @@ function applyCell(){
 
   else if(cell === "skip"){
     player.skip = true;
+    alert("Пропуск следующего хода!");
     finalizeTurn();
   }
 
@@ -154,18 +165,17 @@ function applyCell(){
   }
 
   else if(cell === "risk"){
-    openRiskEvent();   // ← НОВАЯ ЛОГИКА
+    openRiskEvent();
+  }
+
+  else {
+    finalizeTurn();
   }
 }
 
 function finalizeTurn(){
 
   if(player.hype < 0) player.hype = 0;
-
-  if(gainedThisTurn > 8){
-    player.skip = true;
-    alert("Перегрев! Пропуск хода 🔥");
-  }
 
   if(player.hype >= WIN_SCORE){
     alert("ПОБЕДА! 70 хайпа 🎉");
@@ -176,8 +186,7 @@ function finalizeTurn(){
       "Хайп: " + player.hype;
 }
 
-/* ===== RISK КАК ОТДЕЛЬНЫЙ ИВЕНТ ===== */
-
+// ===== RISK =====
 function openRiskEvent(){
 
   const result = confirm(
@@ -190,14 +199,12 @@ function openRiskEvent(){
   }
 
   const p = path[player.pos];
-
   const roll = Math.floor(Math.random()*6)+1;
 
   setTimeout(()=>{
 
     if(roll <= 3){
       player.hype += 10;
-      gainedThisTurn += 10;
       addFloatingText("+10", p.x, p.y-30, "#00ff88");
       alert("Выпало " + roll + " → +10 хайпа!");
     } else {
@@ -211,8 +218,7 @@ function openRiskEvent(){
   },300);
 }
 
-/* ===== СКАНДАЛ ===== */
-
+// ===== СКАНДАЛ =====
 function openScandal(){
 
   const scandals = [
@@ -240,8 +246,7 @@ function openScandal(){
   finalizeTurn();
 }
 
-/* ===== КУБИК ===== */
-
+// ===== КУБИК =====
 const dice = document.getElementById("dice");
 const diceBtn = document.getElementById("diceBtn");
 
@@ -265,6 +270,7 @@ diceBtn.onclick = () => {
   },600);
 };
 
+// ===== ЗАГРУЗКА =====
 boardImg.onload = () => {
   draw();
 };
