@@ -3,7 +3,6 @@ const ctx = canvas.getContext("2d");
 
 const WIN_SCORE = 70;
 
-// === АДАПТИВНЫЙ РАЗМЕР ===
 function resizeCanvas() {
   const size = Math.min(window.innerWidth * 0.95, 500);
   canvas.width = size;
@@ -15,7 +14,6 @@ window.addEventListener("resize", resizeCanvas);
 const boardImg = new Image();
 boardImg.src = "board.jpg";
 
-// === ЦВЕТ ФИШКИ ===
 const selectedColor = "cyan";
 const colors = {
   cyan: "#00cfff",
@@ -27,7 +25,6 @@ const colors = {
 let player = { pos: 0, hype: 0, skip: false };
 let moving = false;
 
-// === ТВОИ КООРДИНАТЫ ===
 const basePath = [
 { x:89,y:599,type:"start"},
 { x:88,y:459,type:"+3"},
@@ -53,7 +50,6 @@ const basePath = [
 
 let path = [];
 
-// === МАСШТАБИРОВАНИЕ ПОД МОБИЛКУ ===
 function scalePath() {
   const scale = canvas.width / 1024;
   path = basePath.map(p => ({
@@ -68,41 +64,54 @@ boardImg.onload = () => {
   draw();
 };
 
-// === ОТРИСОВКА ===
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(boardImg,0,0,canvas.width,canvas.height);
 
   const p = path[player.pos];
 
-  // подсветка
   ctx.beginPath();
   ctx.arc(p.x, p.y, 28, 0, Math.PI*2);
   ctx.strokeStyle = "yellow";
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // фишка
-  const gradient = ctx.createRadialGradient(
-    p.x-5, p.y-5, 5,
-    p.x, p.y, 20
-  );
-
-  gradient.addColorStop(0, "#fff");
-  gradient.addColorStop(0.4, colors[selectedColor]);
-  gradient.addColorStop(1, "#000");
+  const gradient = ctx.createRadialGradient(p.x-5,p.y-5,5,p.x,p.y,20);
+  gradient.addColorStop(0,"#fff");
+  gradient.addColorStop(0.4,colors[selectedColor]);
+  gradient.addColorStop(1,"#000");
 
   ctx.beginPath();
-  ctx.arc(p.x, p.y, 20, 0, Math.PI*2);
+  ctx.arc(p.x,p.y,20,0,Math.PI*2);
   ctx.fillStyle = gradient;
   ctx.fill();
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 2;
-  ctx.stroke();
 }
 
-// === ДВИЖЕНИЕ ===
-async function move(steps) {
+function showModal(title,text,buttons){
+  const overlay = document.getElementById("modalOverlay");
+  const t = document.getElementById("modalTitle");
+  const txt = document.getElementById("modalText");
+  const btns = document.getElementById("modalButtons");
+
+  t.innerText = title;
+  txt.innerText = text;
+  btns.innerHTML = "";
+
+  buttons.forEach(b=>{
+    const button = document.createElement("button");
+    button.innerText = b.text;
+    button.className = b.class;
+    button.onclick = ()=>{
+      overlay.classList.add("hidden");
+      b.onClick();
+    };
+    btns.appendChild(button);
+  });
+
+  overlay.classList.remove("hidden");
+}
+
+async function move(steps){
   if(moving) return;
   moving = true;
 
@@ -117,42 +126,53 @@ async function move(steps) {
   moving = false;
 }
 
-// === ЛОГИКА ===
 function applyCell(){
   const cell = path[player.pos].type;
 
   if(cell.startsWith("+")){
     player.hype += Number(cell.replace("+",""));
+    updateUI();
   }
   else if(cell === "block"){
     player.hype -= 5;
+    updateUI();
   }
   else if(cell === "skip"){
     player.skip = true;
-    alert("Пропуск хода!");
+    showModal("Пропуск хода","Вы пропустите следующий ход!",[
+      {text:"Ок",class:"modalPrimary",onClick:updateUI}
+    ]);
   }
   else if(cell === "risk"){
-    const roll = Math.floor(Math.random()*6)+1;
-    if(roll <= 3) player.hype += 10;
-    else player.hype -= 4;
-    alert("Риск! Выпало " + roll);
+    showModal("Риск!","1–3 → +10\n4–6 → −4",[{
+      text:"Бросить",
+      class:"modalPrimary",
+      onClick:()=>{
+        const roll = Math.floor(Math.random()*6)+1;
+        if(roll<=3) player.hype+=10;
+        else player.hype-=4;
+        updateUI();
+      }
+    }]);
+    return;
   }
   else if(cell === "scandal"){
     player.hype -= 3;
-    alert("Скандал! −3 хайпа");
+    showModal("Скандал!","−3 хайпа",[
+      {text:"Понятно",class:"modalDanger",onClick:updateUI}
+    ]);
+    return;
   }
 
   if(player.hype < 0) player.hype = 0;
 
-  updateUI();
-
   if(player.hype >= WIN_SCORE){
-    alert("ПОБЕДА! 🎉");
-    location.reload();
+    showModal("ПОБЕДА 🎉","Ты набрал 70 хайпа!",[
+      {text:"Играть снова",class:"modalPrimary",onClick:()=>location.reload()}
+    ]);
   }
 }
 
-// === UI ===
 function updateUI(){
   document.getElementById("hypeDisplay").innerText =
     "Хайп: " + player.hype;
@@ -162,7 +182,6 @@ function updateUI(){
     percent + "%";
 }
 
-// === КУБИК ===
 const dice = document.getElementById("dice");
 const diceBtn = document.getElementById("diceBtn");
 
@@ -172,7 +191,9 @@ diceBtn.onclick = () => {
 
   if(player.skip){
     player.skip = false;
-    alert("Вы пропускаете ход!");
+    showModal("Пропуск","Вы пропускаете ход!",[
+      {text:"Ок",class:"modalPrimary",onClick:()=>{}}
+    ]);
     return;
   }
 
