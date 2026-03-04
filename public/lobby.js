@@ -1,16 +1,67 @@
-const socket=io();
+const socket = io();
 
-function join(){
+let selectedColor = null;
+let currentRoom = null;
 
-localStorage.name=name.value;
-localStorage.room=room.value;
-localStorage.color=color.value;
+const nameInput = document.getElementById("nameInput");
+const roomInput = document.getElementById("roomInput");
+const joinBtn = document.getElementById("joinBtn");
+const startBtn = document.getElementById("startBtn");
+const lobbyPlayers = document.getElementById("lobbyPlayers");
 
-socket.emit("joinRoom",{
-name:name.value,
-room:room.value,
-color:color.value
+document.querySelectorAll(".colorOption").forEach(el => {
+  el.onclick = () => {
+    document.querySelectorAll(".colorOption").forEach(c => c.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedColor = el.dataset.color;
+  };
 });
 
-location="/game";
-}
+joinBtn.onclick = () => {
+  const name = nameInput.value.trim();
+  const room = roomInput.value.trim();
+
+  if (!name || !room || !selectedColor) {
+    alert("Заполните все поля и выберите цвет");
+    return;
+  }
+
+  currentRoom = room;
+
+  socket.emit("joinRoom", {
+    name,
+    roomCode: room,
+    color: selectedColor
+  });
+};
+
+socket.on("updateLobby", (data) => {
+  lobbyPlayers.innerHTML = "";
+
+  data.players.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "playerItem";
+    div.innerHTML = `
+      <span style="color:${p.color}">●</span>
+      ${p.name}
+    `;
+    lobbyPlayers.appendChild(div);
+  });
+
+  if (socket.id === data.host && data.players.length >= 2) {
+    startBtn.classList.remove("hidden");
+  } else {
+    startBtn.classList.add("hidden");
+  }
+});
+
+startBtn.onclick = () => {
+  socket.emit("startGame", currentRoom);
+};
+
+socket.on("gameStarted", () => {
+  window.location.href = "/game.html?room=" + currentRoom;
+});
+
+socket.on("roomFull", () => alert("Комната заполнена (макс 4)"));
+socket.on("alreadyStarted", () => alert("Игра уже началась"));
