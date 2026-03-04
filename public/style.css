@@ -1,113 +1,46 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
+.gameBody {
+  margin:0;
+  background:#111;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  color:white;
 }
 
-/* ФОН */
-.lobbyBody {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #6a00ff, #00cfff);
-  overflow: hidden;
+.topPanel {
+  width:95%;
+  margin-top:10px;
 }
 
-.lobbyBody::before {
-  content: "";
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 40%);
-  animation: floatBg 8s infinite linear;
+#playersPanel {
+  display:flex;
+  justify-content:space-around;
+  font-size:14px;
+  margin-bottom:5px;
 }
 
-@keyframes floatBg {
-  0% { transform: translate(0,0); }
-  50% { transform: translate(-10%, -10%); }
-  100% { transform: translate(0,0); }
+#messageBox {
+  text-align:center;
+  min-height:20px;
+  font-size:14px;
+  color:#00cfff;
 }
 
-/* КАРТОЧКА */
-.lobbyCard {
-  position: relative;
-  z-index: 2;
-  background: rgba(0,0,0,0.6);
-  padding: 30px;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 350px;
-  text-align: center;
-  backdrop-filter: blur(10px);
-  color: white;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+canvas {
+  margin-top:10px;
+  border-radius:15px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.6);
 }
 
-.lobbyCard h1 {
-  margin-bottom: 20px;
+.diceWrapper {
+  margin:20px 0;
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 12px;
-  border: none;
-  font-size: 16px;
-}
-
-/* КРУЖКИ ФИШЕК */
-.colorPicker {
-  display: flex;
-  justify-content: space-between;
-  margin: 15px 0;
-}
-
-.colorOption {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: 0.2s;
-}
-
-.colorOption[data-color="cyan"] { background: #00cfff; }
-.colorOption[data-color="red"] { background: #ff2b2b; }
-.colorOption[data-color="orange"] { background: #ff8c00; }
-.colorOption[data-color="purple"] { background: #a020f0; }
-
-.colorOption.selected {
-  border: 3px solid white;
-  transform: scale(1.1);
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 25px;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 10px;
-  background: #00cfff;
-  color: white;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-#lobbyPlayers {
-  margin-top: 15px;
-  text-align: left;
-}
-
-.playerItem {
-  padding: 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-
-.hidden {
-  display: none;
+#diceBtn {
+  padding:15px 50px;
+  border:none;
+  border-radius:30px;
+  background:#00cfff;
+  color:white;
+  font-size:18px;
 }
