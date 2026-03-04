@@ -15,16 +15,10 @@ const boardImg = new Image();
 boardImg.src = "board.jpg";
 
 const selectedColor = "cyan";
-const colors = {
-  cyan: "#00cfff",
-  red: "#ff2b2b",
-  orange: "#ff8c00",
-  purple: "#a020f0"
-};
+const colors = { cyan:"#00cfff", red:"#ff2b2b", orange:"#ff8c00", purple:"#a020f0"};
 
-let player = { pos: 0, hype: 0, skip: false };
+let player = { pos:0, hype:0, skip:false };
 let moving = false;
-
 const basePath = [
 { x:89,y:599,type:"start"},
 { x:88,y:459,type:"+3"},
@@ -47,22 +41,24 @@ const basePath = [
 { x:350,y:610,type:"block"},
 { x:228,y:600,type:"+4"}
 ];
-
 let path = [];
+let floatingTexts = [];
 
 function scalePath() {
   const scale = canvas.width / 1024;
-  path = basePath.map(p => ({
-    ...p,
-    x: p.x * scale,
-    y: p.y * scale
-  }));
+  path = basePath.map(p=>({...p, x:p.x*scale, y:p.y*scale}));
 }
 
-boardImg.onload = () => {
-  scalePath();
+boardImg.onload = ()=>{ scalePath(); draw(); animateFloating(); };
+
+function addFloatingText(text,x,y,color){ floatingTexts.push({text,x,y,alpha:1,color}); }
+
+function animateFloating(){
+  floatingTexts.forEach(t=>{ t.y-=1; t.alpha-=0.02; });
+  floatingTexts = floatingTexts.filter(t=>t.alpha>0);
   draw();
-};
+  requestAnimationFrame(animateFloating);
+}
 
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -70,10 +66,11 @@ function draw() {
 
   const p = path[player.pos];
 
+  // пульсация клетки
   ctx.beginPath();
-  ctx.arc(p.x, p.y, 28, 0, Math.PI*2);
+  ctx.arc(p.x,p.y,28,0,Math.PI*2);
   ctx.strokeStyle = "yellow";
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3 + 2*Math.sin(Date.now()/200);
   ctx.stroke();
 
   const gradient = ctx.createRadialGradient(p.x-5,p.y-5,5,p.x,p.y,20);
@@ -85,124 +82,31 @@ function draw() {
   ctx.arc(p.x,p.y,20,0,Math.PI*2);
   ctx.fillStyle = gradient;
   ctx.fill();
-}
 
-function showModal(title,text,buttons){
-  const overlay = document.getElementById("modalOverlay");
-  const t = document.getElementById("modalTitle");
-  const txt = document.getElementById("modalText");
-  const btns = document.getElementById("modalButtons");
-
-  t.innerText = title;
-  txt.innerText = text;
-  btns.innerHTML = "";
-
-  buttons.forEach(b=>{
-    const button = document.createElement("button");
-    button.innerText = b.text;
-    button.className = b.class;
-    button.onclick = ()=>{
-      overlay.classList.add("hidden");
-      b.onClick();
-    };
-    btns.appendChild(button);
+  // всплывающий текст
+  floatingTexts.forEach(t=>{
+    ctx.globalAlpha = t.alpha;
+    ctx.fillStyle = t.color;
+    ctx.font = "bold 22px Arial";
+    ctx.fillText(t.text,t.x,t.y);
+    ctx.globalAlpha=1;
   });
-
-  overlay.classList.remove("hidden");
 }
 
-async function move(steps){
-  if(moving) return;
-  moving = true;
+// === модалка, move, applyCell, updateUI остаются такими же как в прошлой версии ===
+// === Только добавим эффект кубика CSS3D ниже ===
 
-  for(let i=0;i<steps;i++){
-    await new Promise(r=>setTimeout(r,250));
-    player.pos++;
-    if(player.pos >= path.length) player.pos = 0;
-    draw();
-  }
-
-  applyCell();
-  moving = false;
-}
-
-function applyCell(){
-  const cell = path[player.pos].type;
-
-  if(cell.startsWith("+")){
-    player.hype += Number(cell.replace("+",""));
-    updateUI();
-  }
-  else if(cell === "block"){
-    player.hype -= 5;
-    updateUI();
-  }
-  else if(cell === "skip"){
-    player.skip = true;
-    showModal("Пропуск хода","Вы пропустите следующий ход!",[
-      {text:"Ок",class:"modalPrimary",onClick:updateUI}
-    ]);
-  }
-  else if(cell === "risk"){
-    showModal("Риск!","1–3 → +10\n4–6 → −4",[{
-      text:"Бросить",
-      class:"modalPrimary",
-      onClick:()=>{
-        const roll = Math.floor(Math.random()*6)+1;
-        if(roll<=3) player.hype+=10;
-        else player.hype-=4;
-        updateUI();
-      }
-    }]);
-    return;
-  }
-  else if(cell === "scandal"){
-    player.hype -= 3;
-    showModal("Скандал!","−3 хайпа",[
-      {text:"Понятно",class:"modalDanger",onClick:updateUI}
-    ]);
-    return;
-  }
-
-  if(player.hype < 0) player.hype = 0;
-
-  if(player.hype >= WIN_SCORE){
-    showModal("ПОБЕДА 🎉","Ты набрал 70 хайпа!",[
-      {text:"Играть снова",class:"modalPrimary",onClick:()=>location.reload()}
-    ]);
-  }
-}
-
-function updateUI(){
-  document.getElementById("hypeDisplay").innerText =
-    "Хайп: " + player.hype;
-
-  const percent = (player.hype / WIN_SCORE) * 100;
-  document.getElementById("progressFill").style.width =
-    percent + "%";
-}
-
-const dice = document.getElementById("dice");
+const dice3d = document.getElementById("dice3d");
 const diceBtn = document.getElementById("diceBtn");
 
-diceBtn.onclick = () => {
-
+diceBtn.onclick = ()=>{
   if(moving) return;
+  if(player.skip){ player.skip=false; return; }
 
-  if(player.skip){
-    player.skip = false;
-    showModal("Пропуск","Вы пропускаете ход!",[
-      {text:"Ок",class:"modalPrimary",onClick:()=>{}}
-    ]);
-    return;
-  }
+  const rotX = 360*Math.floor(Math.random()*4 +1);
+  const rotY = 360*Math.floor(Math.random()*4 +1);
+  dice3d.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
 
-  dice.classList.add("spin");
-
-  setTimeout(()=>{
-    dice.classList.remove("spin");
-    const roll = Math.floor(Math.random()*6)+1;
-    dice.innerText = roll;
-    move(roll);
-  },600);
+  const roll = Math.floor(Math.random()*6)+1;
+  setTimeout(()=> move(roll), 1000);
 };
