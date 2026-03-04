@@ -8,8 +8,6 @@ body {
   color: white;
 }
 
-/* ===== ВЕРХ ===== */
-
 #topPanel {
   width: 90%;
   margin-top: 15px;
@@ -37,15 +35,11 @@ body {
   transition: width 0.4s ease;
 }
 
-/* ===== ПОЛЕ ===== */
-
 canvas {
   margin-top: 15px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
-
-/* ===== НИЗ ===== */
 
 #controls {
   margin-top: 20px;
@@ -55,30 +49,37 @@ canvas {
   align-items: center;
 }
 
-#dice {
+/* ===== 3D кубик ===== */
+#dice3d {
+  width: 90px;
+  height: 90px;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg) rotateY(0deg);
+  transition: transform 1s ease;
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.face {
+  position: absolute;
   width: 90px;
   height: 90px;
   background: white;
   color: black;
-  font-size: 42px;
+  font-size: 36px;
   font-weight: bold;
-  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+  border: 2px solid #000;
 }
 
-.spin {
-  animation: spinDice 0.6s ease;
-}
-
-@keyframes spinDice {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.2); }
-  100% { transform: rotate(360deg) scale(1); }
-}
+.front { transform: rotateY(0deg) translateZ(45px);}
+.back { transform: rotateY(180deg) translateZ(45px);}
+.right { transform: rotateY(90deg) translateZ(45px);}
+.left { transform: rotateY(-90deg) translateZ(45px);}
+.top { transform: rotateX(90deg) translateZ(45px);}
+.bottom { transform: rotateX(-90deg) translateZ(45px);}
 
 #diceBtn {
   background: #00cfff;
@@ -94,8 +95,7 @@ canvas {
   transform: scale(0.95);
 }
 
-/* ===== МОДАЛКА ===== */
-
+/* ===== Модалка ===== */
 #modalOverlay {
   position: fixed;
   inset: 0;
@@ -137,26 +137,13 @@ canvas {
   cursor: pointer;
 }
 
-.modalPrimary {
-  background: #00cfff;
-  color: white;
-}
+.modalPrimary { background: #00cfff; color: white; }
+.modalDanger { background: #ff2b2b; color: white; }
+.hidden { display: none !important; }
 
-.modalDanger {
-  background: #ff2b2b;
-  color: white;
-}
-
-.hidden {
-  display: none !important;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes popUp {
-  from { transform: scale(0.8); }
-  to { transform: scale(1); }
+/* ===== Пульсация клетки ===== */
+@keyframes pulse {
+  0% { box-shadow: 0 0 10px 2px yellow; transform: scale(1);}
+  50% { box-shadow: 0 0 25px 8px yellow; transform: scale(1.1);}
+  100% { box-shadow: 0 0 10px 2px yellow; transform: scale(1);}
 }
