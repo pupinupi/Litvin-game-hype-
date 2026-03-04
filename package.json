@@ -1,6 +1,7 @@
 {
-  "name": "litvin-game",
+  "name": "hype-game-online",
   "version": "1.0.0",
+  "description": "Online Hype Board Game",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
