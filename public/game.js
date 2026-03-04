@@ -8,7 +8,6 @@ const boardImg = new Image();
 boardImg.src = "board.jpg";
 
 const WIN_SCORE = 70;
-
 const selectedColor = "blue";
 
 const colors = {
@@ -27,7 +26,10 @@ let player = {
 let moving = false;
 let gainedThisTurn = 0;
 
-/* КООРДИНАТЫ */
+/* ===== ВСПЛЫВАЮЩИЕ ЧИСЛА ===== */
+let floatingTexts = [];
+
+/* ===== КООРДИНАТЫ ===== */
 const path = [
 { x:89,y:599,type:"start"},
 { x:88,y:459,type:"+3"},
@@ -51,7 +53,7 @@ const path = [
 { x:228,y:600,type:"+4"}
 ];
 
-/* СКАНДАЛЫ */
+/* ===== СКАНДАЛЫ ===== */
 const scandals = [
 { text:"Перегрел аудиторию 🔥", effect:-1 },
 { text:"Громкий заголовок 🫣", effect:-2 },
@@ -62,7 +64,7 @@ const scandals = [
 { text:"Это контент, вы не понимаете 🙄", effect:"skip" }
 ];
 
-/* ОТРИСОВКА */
+/* ===== ОТРИСОВКА ===== */
 function draw(){
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -85,9 +87,45 @@ function draw(){
   ctx.strokeStyle = "white";
   ctx.lineWidth = 3;
   ctx.stroke();
+
+  /* всплывающие числа */
+  floatingTexts.forEach(t=>{
+    ctx.globalAlpha = t.alpha;
+    ctx.fillStyle = t.color;
+    ctx.font = "bold 28px Arial";
+    ctx.fillText(t.text, t.x, t.y);
+    ctx.globalAlpha = 1;
+  });
 }
 
-/* ДВИЖЕНИЕ */
+/* ===== АНИМАЦИЯ ЧИСЕЛ ===== */
+function addFloatingText(text, x, y, color){
+
+  floatingTexts.push({
+    text,
+    x,
+    y,
+    alpha:1,
+    color
+  });
+}
+
+function animateFloating(){
+
+  floatingTexts.forEach(t=>{
+    t.y -= 1;
+    t.alpha -= 0.02;
+  });
+
+  floatingTexts = floatingTexts.filter(t=>t.alpha > 0);
+
+  draw();
+  requestAnimationFrame(animateFloating);
+}
+
+animateFloating();
+
+/* ===== ДВИЖЕНИЕ ===== */
 async function move(steps){
 
   if(moving) return;
@@ -107,15 +145,17 @@ async function move(steps){
   moving = false;
 }
 
-/* ЛОГИКА */
+/* ===== ЛОГИКА ===== */
 function applyCell(){
 
   const cell = path[player.pos].type;
+  const p = path[player.pos];
 
   if(cell.startsWith("+")){
     const val = Number(cell.replace("+",""));
     player.hype += val;
     gainedThisTurn += val;
+    addFloatingText("+"+val, p.x, p.y-30, "#00ff88");
     finalizeTurn();
   }
 
@@ -125,6 +165,7 @@ function applyCell(){
 
   else if(cell === "block"){
     player.hype -= 5;
+    addFloatingText("-5", p.x, p.y-30, "#ff4444");
     finalizeTurn();
   }
 
@@ -160,7 +201,65 @@ function updateUI(){
       "Хайп: " + player.hype;
 }
 
-/* КУБИК */
+/* ===== RISK ===== */
+const riskModal = document.getElementById("riskModal");
+const closeRisk = document.getElementById("closeRisk");
+
+function openRisk(){
+  riskModal.style.display = "flex";
+}
+
+closeRisk.onclick = function(){
+
+  const p = path[player.pos];
+  const r = Math.floor(Math.random()*6)+1;
+
+  if(r <= 3){
+    player.hype += 10;
+    gainedThisTurn += 10;
+    addFloatingText("+10", p.x, p.y-30, "#00ff88");
+  } else {
+    player.hype -= 4;
+    addFloatingText("-4", p.x, p.y-30, "#ff4444");
+  }
+
+  riskModal.style.display = "none";
+  finalizeTurn();
+};
+
+/* ===== СКАНДАЛ ===== */
+const scandalModal = document.getElementById("scandalModal");
+const scandalText = document.getElementById("scandalText");
+const closeScandal = document.getElementById("closeScandal");
+
+function openScandal(){
+
+  const random = scandals[Math.floor(Math.random()*scandals.length)];
+  const p = path[player.pos];
+
+  if(random.effect === "skip"){
+    scandalText.innerText = random.text + "\nПропуск хода!";
+  } else {
+    scandalText.innerText = random.text + "\nХайп: " + random.effect;
+  }
+
+  scandalModal.style.display = "flex";
+
+  closeScandal.onclick = function(){
+
+    if(random.effect === "skip"){
+      player.skip = true;
+    } else {
+      player.hype += random.effect;
+      addFloatingText(random.effect, p.x, p.y-30, "#ff4444");
+    }
+
+    scandalModal.style.display = "none";
+    finalizeTurn();
+  }
+};
+
+/* ===== КУБИК ===== */
 const dice = document.getElementById("dice");
 const diceBtn = document.getElementById("diceBtn");
 
@@ -182,50 +281,6 @@ diceBtn.onclick = () => {
     dice.innerText = roll;
     move(roll);
   },600);
-};
-
-/* RISK */
-const riskModal = document.getElementById("riskModal");
-const closeRisk = document.getElementById("closeRisk");
-
-function openRisk(){
-  riskModal.style.display = "flex";
-}
-
-closeRisk.onclick = function(){
-
-  const r = Math.floor(Math.random()*6)+1;
-
-  if(r <= 3){
-    player.hype += 10;
-    gainedThisTurn += 10;
-  } else {
-    player.hype -= 4;
-  }
-
-  riskModal.style.display = "none";
-  finalizeTurn();
-};
-
-/* СКАНДАЛ */
-const scandalModal = document.getElementById("scandalModal");
-const scandalText = document.getElementById("scandalText");
-const closeScandal = document.getElementById("closeScandal");
-
-function openScandal(){
-  const random = scandals[Math.floor(Math.random()*scandals.length)];
-  scandalText.innerText = random.text;
-  scandalModal.style.display = "flex";
-
-  closeScandal.onclick = function(){
-    if(random.effect === "skip"){
-      player.skip = true;
-    } else {
-      player.hype += random.effect;
-    }
-    scandalModal.style.display = "none";
-    finalizeTurn();
-  }
 };
 
 boardImg.onload = () => {
