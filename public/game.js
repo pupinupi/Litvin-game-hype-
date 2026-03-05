@@ -1,46 +1,54 @@
-const board = document.getElementById("board");
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = 900;
+canvas.height = 300;
+
 const diceBtn = document.getElementById("diceBtn");
-const diceResult = document.getElementById("diceResult");
-const hypeBoard = document.getElementById("hypeBoard");
-const popup = document.getElementById("popup");
+const messageBox = document.getElementById("messageBox");
+const playersPanel = document.getElementById("playersPanel");
+
+const socket = io();
 
 let players = [];
 let currentPlayer = 0;
 
-const boardCells = [
-{type:"start"},
-{type:"hype",value:3},
-{type:"hype",value:2},
-{type:"scandal"},
-{type:"risk"},
-{type:"hype",value:2},
-{type:"scandal"},
-{type:"hype",value:3},
-{type:"hype",value:5},
-{type:"zerohype"},
-{type:"jail"},
-{type:"hype",value:3},
-{type:"risk"},
-{type:"hype",value:3},
-{type:"skip"},
-{type:"hype",value:2},
-{type:"scandal"},
-{type:"hype",value:8},
-{type:"zerohype"},
-{type:"hype",value:4}
+const cellSize = 45;
+
+const board = [
+"start",
+"hype3",
+"hype2",
+"scandal",
+"risk",
+"hype2",
+"scandal",
+"hype3",
+"hype5",
+"zerohype",
+"jail",
+"hype3",
+"risk",
+"hype3",
+"skip",
+"hype2",
+"scandal",
+"hype8",
+"zerohype",
+"hype4"
 ];
 
 const scandals = [
-{ text:"Перегрел аудиторию 🔥", value:-1 },
-{ text:"Громкий заголовок 🫣", value:-2 },
-{ text:"Это монтаж 😱", value:-3 },
-{ text:"Меня взломали #️⃣", value:-3, all:true },
-{ text:"Подписчики в шоке 😮", value:-4 },
-{ text:"Удаляй пока не поздно 🤫", value:-5 },
-{ text:"Это контент, вы не понимаете 🙄", value:-5, skip:true }
+{ text:"Перегрел аудиторию 🔥", hype:-1 },
+{ text:"Громкий заголовок 🫣", hype:-2 },
+{ text:"Это монтаж 😱", hype:-3 },
+{ text:"Меня взломали #️⃣", hype:-3, all:true },
+{ text:"Подписчики в шоке 😮", hype:-4 },
+{ text:"Удаляй пока не поздно 🤫", hype:-5 },
+{ text:"Это контент, вы не понимаете 🙄", hype:-5, skip:true }
 ];
 
-function initPlayers(){
+function initPlayer(){
 
 const name = localStorage.name || "Игрок";
 const color = localStorage.color || "red";
@@ -53,191 +61,174 @@ hype:0,
 skip:false
 });
 
-createTokens();
-updateHype();
+draw();
+updatePanel();
 }
 
-function createTokens(){
+function draw(){
 
-players.forEach((p,i)=>{
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-const token=document.createElement("div");
-token.className="token";
-token.style.background=p.color;
-token.id="token"+i;
+for(let i=0;i<board.length;i++){
 
-board.appendChild(token);
+ctx.strokeRect(i*cellSize+20,120,cellSize,cellSize);
 
-moveToken(i,0);
+ctx.fillText(i+1,i*cellSize+30,150);
+
+}
+
+players.forEach(p=>{
+
+ctx.beginPath();
+
+ctx.arc(
+p.pos*cellSize+42,
+142,
+10,
+0,
+Math.PI*2
+);
+
+ctx.fillStyle=p.color;
+ctx.fill();
 
 });
 
 }
 
-function moveToken(i,pos){
+function updatePanel(){
 
-const cell=document.getElementById("cell"+pos);
-const token=document.getElementById("token"+i);
+playersPanel.innerHTML="";
 
-token.style.left=cell.offsetLeft+10+"px";
-token.style.top=cell.offsetTop+10+"px";
+players.forEach(p=>{
+
+const div=document.createElement("div");
+div.innerText=p.name+" : "+p.hype+"🔥";
+
+playersPanel.appendChild(div);
+
+});
 
 }
 
-function rollDice(){
-
-const value=Math.floor(Math.random()*6)+1;
-
-diceResult.innerText="🎲 "+value;
+diceBtn.onclick=()=>{
 
 let p=players[currentPlayer];
 
 if(p.skip){
+
+message("Пропуск хода");
 p.skip=false;
 nextPlayer();
 return;
+
 }
 
-p.pos+=value;
+const dice=Math.floor(Math.random()*6)+1;
 
-if(p.pos>=boardCells.length)
-p.pos=boardCells.length-1;
+message("🎲 Выпало "+dice);
 
-moveToken(currentPlayer,p.pos);
+p.pos+=dice;
+
+if(p.pos>=board.length)
+p.pos=board.length-1;
 
 applyCell(p);
 
-updateHype();
+draw();
+
+updatePanel();
 
 checkWin();
 
-}
+};
 
-diceBtn.onclick=rollDice;
+function applyCell(p){
 
-function applyCell(player){
+const cell=board[p.pos];
 
-const cell=boardCells[player.pos];
+if(cell==="hype3") addHype(p,3);
+if(cell==="hype2") addHype(p,2);
+if(cell==="hype4") addHype(p,4);
+if(cell==="hype5") addHype(p,5);
+if(cell==="hype8") addHype(p,8);
 
-if(cell.type==="hype"){
+if(cell==="zerohype"){
 
-addHype(player,cell.value);
-
-showPopup("+"+cell.value+" хайп");
-
-}
-
-if(cell.type==="zerohype"){
-
-player.hype=0;
-
-showPopup("Весь хайп потерян!");
+p.hype=0;
+message("Весь хайп потерян");
 
 }
 
-if(cell.type==="skip"){
+if(cell==="skip"){
 
-player.skip=true;
-
-showPopup("Пропуск хода");
-
-}
-
-if(cell.type==="jail"){
-
-player.hype-=10;
-
-player.skip=true;
-
-showPopup("-10 хайп и пропуск хода");
+p.skip=true;
+message("Пропуск хода");
 
 }
 
-if(cell.type==="risk"){
+if(cell==="jail"){
 
-riskEvent(player);
-
-}
-
-if(cell.type==="scandal"){
-
-scandalEvent(player);
+p.hype-=10;
+p.skip=true;
+message("Тюрьма -10 хайпа");
 
 }
 
+if(cell==="scandal") scandal(p);
+if(cell==="risk") risk(p);
+
 }
 
-function scandalEvent(player){
+function scandal(p){
 
 const card=scandals[Math.floor(Math.random()*scandals.length)];
 
 if(card.all){
 
-players.forEach(p=>p.hype+=card.value);
+players.forEach(pl=>pl.hype+=card.hype);
+
+}else{
+
+p.hype+=card.hype;
 
 }
 
-else{
+if(card.skip) p.skip=true;
 
-player.hype+=card.value;
-
-}
-
-if(card.skip)
-player.skip=true;
-
-showPopup(card.text+" ("+card.value+")");
-
-updateHype();
+message(card.text+" "+card.hype+"🔥");
 
 }
 
-function riskEvent(player){
+function risk(p){
 
 const roll=Math.floor(Math.random()*6)+1;
 
 if(roll<=3){
 
-player.hype+=6;
+p.hype+=6;
+message("Риск удался +6🔥");
 
-showPopup("Риск удался! +6 хайп");
+}else{
 
-}
-
-else{
-
-player.hype-=4;
-
-showPopup("Риск провалился! -4 хайп");
+p.hype-=4;
+message("Риск провалился -4🔥");
 
 }
 
-updateHype();
+}
+
+function addHype(p,val){
+
+p.hype+=val;
+
+message("+"+val+" хайп");
 
 }
 
-function addHype(player,val){
+function message(text){
 
-player.hype+=val;
-
-if(player.hype<0)
-player.hype=0;
-
-}
-
-function updateHype(){
-
-hypeBoard.innerHTML="";
-
-players.forEach(p=>{
-
-const div=document.createElement("div");
-
-div.innerText=p.name+" : "+p.hype+"🔥";
-
-hypeBoard.appendChild(div);
-
-});
+messageBox.innerText=text;
 
 }
 
@@ -252,11 +243,11 @@ currentPlayer=0;
 
 function checkWin(){
 
-const p=players[currentPlayer];
+let p=players[currentPlayer];
 
 if(p.hype>=70){
 
-alert(p.name+" победил! 🔥");
+alert(p.name+" победил 🔥");
 
 location.reload();
 
@@ -266,18 +257,4 @@ nextPlayer();
 
 }
 
-function showPopup(text){
-
-popup.innerText=text;
-
-popup.style.display="block";
-
-setTimeout(()=>{
-
-popup.style.display="none";
-
-},2000);
-
-}
-
-initPlayers();
+initPlayer();
