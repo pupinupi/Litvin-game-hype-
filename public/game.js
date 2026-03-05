@@ -8,7 +8,7 @@ const room = params.get("room");
 
 let roomState = null;
 
-function resizeCanvas() {
+function resizeCanvas(){
 
   const size = window.innerWidth * 0.95;
 
@@ -20,7 +20,7 @@ function resizeCanvas() {
 resizeCanvas();
 
 const boardImg = new Image();
-boardImg.src = "board.jpg";
+boardImg.src = "./board.jpg";
 
 const basePath = [
 
@@ -49,15 +49,13 @@ const basePath = [
 
 let path = [];
 
-function scalePath() {
+function scalePath(){
 
   const scale = canvas.width / 1024;
 
   path = basePath.map(p => ({
-
-    x: p.x * scale,
-    y: p.y * scale
-
+    x:p.x*scale,
+    y:p.y*scale
   }));
 
 }
@@ -65,56 +63,40 @@ function scalePath() {
 boardImg.onload = () => {
 
   scalePath();
-
   draw();
 
 };
 
-window.addEventListener("resize", () => {
+window.addEventListener("resize",()=>{
 
   resizeCanvas();
-
   scalePath();
-
   draw();
 
 });
 
-function draw() {
+function draw(){
 
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.drawImage(
-    boardImg,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+  ctx.drawImage(boardImg,0,0,canvas.width,canvas.height);
 
-  if (!roomState) return;
+  if(!roomState) return;
 
-  const cellRadius = canvas.width * 0.035;
+  const tokenRadius = canvas.width * 0.012;
 
-  const tokenRadius = cellRadius * 0.3;
+  roomState.players.forEach(player=>{
 
-  roomState.players.forEach(player => {
-
-    const p = path[player.position];
+    const pos = path[player.position];
 
     ctx.beginPath();
 
     ctx.arc(
-      p.x,
-      p.y,
+      pos.x,
+      pos.y,
       tokenRadius,
       0,
-      Math.PI * 2
+      Math.PI*2
     );
 
     ctx.fillStyle = player.color;
@@ -125,7 +107,7 @@ function draw() {
 
 }
 
-socket.on("updateGame", (roomData) => {
+socket.on("updateGame",(roomData)=>{
 
   roomState = roomData;
 
@@ -135,31 +117,33 @@ socket.on("updateGame", (roomData) => {
 
 });
 
-socket.on("diceRolled", (roll) => {
+socket.on("diceRolled",(roll)=>{
 
   document.getElementById("messageBox").innerText =
-    "Выпало: " + roll;
+  "Выпало: "+roll;
 
 });
 
-socket.on("message", (msg) => {
+socket.on("message",(msg)=>{
 
   document.getElementById("messageBox").innerText = msg;
 
 });
 
-function updatePlayersPanel() {
+function updatePlayersPanel(){
 
   const panel = document.getElementById("playersPanel");
 
   panel.innerHTML = "";
 
-  roomState.players.forEach(p => {
+  roomState.players.forEach(p=>{
 
     const div = document.createElement("div");
 
-    div.innerHTML =
-      `<span style="color:${p.color}">●</span> ${p.name} (${p.hype})`;
+    div.innerHTML = `
+    <span style="color:${p.color}">●</span>
+    ${p.name} (${p.hype})
+    `;
 
     panel.appendChild(div);
 
@@ -167,8 +151,8 @@ function updatePlayersPanel() {
 
 }
 
-document.getElementById("diceBtn").onclick = () => {
+document.getElementById("diceBtn").onclick = ()=>{
 
-  socket.emit("rollDice", room);
+  socket.emit("rollDice",room);
 
 };
