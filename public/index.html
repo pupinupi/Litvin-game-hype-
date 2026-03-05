@@ -1,34 +1,51 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hype Lobby</title>
-  <link rel="stylesheet" href="style.css">
+
+<meta charset="UTF-8">
+<link rel="stylesheet" href="style.css">
+
 </head>
-<body class="lobbyBody">
 
-<div class="lobbyCard">
-  <h1>🔥 HYPE GAME</h1>
+<body>
 
-  <input id="nameInput" placeholder="Ваше имя" />
-  <input id="roomInput" placeholder="Код комнаты" />
+<h1>🔥 ЛИТВИН — ПУТЬ К ХАЙПУ</h1>
 
-  <div class="colorPicker">
-    <div class="colorOption" data-color="#00cfff"></div>
-    <div class="colorOption" data-color="#ff2b2b"></div>
-    <div class="colorOption" data-color="#ff8c00"></div>
-    <div class="colorOption" data-color="#a020f0"></div>
-  </div>
+<input id="name" placeholder="Имя">
 
-  <button id="joinBtn">Войти</button>
+<input id="room" placeholder="Код комнаты">
 
-  <div id="lobbyPlayers"></div>
-  <button id="startBtn" class="hidden">Начать игру</button>
-</div>
+<select id="color">
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="lobby.js"></script>
+<option value="yellow">Жёлтая</option>
+<option value="red">Красная</option>
+<option value="blue">Синяя</option>
+<option value="purple">Фиолетовая</option>
+
+</select>
+
+<button onclick="join()">Войти</button>
+
+<script>
+
+function join(){
+
+localStorage.name =
+document.getElementById("name").value;
+
+localStorage.room =
+document.getElementById("room").value;
+
+localStorage.color =
+document.getElementById("color").value;
+
+location = "game.html";
+
+}
+
+</script>
 
 </body>
+
 </html>
