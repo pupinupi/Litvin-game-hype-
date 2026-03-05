@@ -1,94 +1,121 @@
+const socket = io();
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
-canvas.width = 900;
-canvas.height = 300;
 
 const diceBtn = document.getElementById("diceBtn");
 const messageBox = document.getElementById("messageBox");
 const playersPanel = document.getElementById("playersPanel");
 
-const socket = io();
+canvas.width = window.innerWidth - 20;
+canvas.height = canvas.width;
 
-let players = [];
-let currentPlayer = 0;
+const board = new Image();
+board.src = "board.jpg";
 
-const cellSize = 45;
+let roomState = null;
 
-const board = [
-"start",
-"hype3",
-"hype2",
-"scandal",
-"risk",
-"hype2",
-"scandal",
-"hype3",
-"hype5",
-"zerohype",
-"jail",
-"hype3",
-"risk",
-"hype3",
-"skip",
-"hype2",
-"scandal",
-"hype8",
-"zerohype",
-"hype4"
+const params = new URLSearchParams(window.location.search);
+const room = params.get("room");
+
+
+// координаты клеток твоего поля
+const path = [
+{x:80,y:600},
+{x:80,y:460},
+{x:80,y:350},
+{x:80,y:240},
+{x:100,y:120},
+{x:230,y:100},
+{x:360,y:90},
+{x:500,y:90},
+{x:650,y:100},
+{x:820,y:110},
+{x:930,y:200},
+{x:940,y:320},
+{x:930,y:440},
+{x:910,y:580},
+{x:780,y:610},
+{x:640,y:610},
+{x:500,y:610},
+{x:350,y:610},
+{x:220,y:610},
+{x:100,y:610}
 ];
 
+
+// клетки поля
+const cells = [
+{type:"start"},
+{type:"hype",value:3},
+{type:"hype",value:2},
+{type:"scandal"},
+{type:"risk"},
+{type:"hype",value:2},
+{type:"scandal"},
+{type:"hype",value:3},
+{type:"hype",value:5},
+{type:"loseAll"},
+{type:"jail"},
+{type:"hype",value:3},
+{type:"risk"},
+{type:"hype",value:3},
+{type:"skip"},
+{type:"hype",value:2},
+{type:"scandal"},
+{type:"hype",value:8},
+{type:"loseAll"},
+{type:"hype",value:4}
+];
+
+
+// карточки скандалов
 const scandals = [
-{ text:"Перегрел аудиторию 🔥", hype:-1 },
-{ text:"Громкий заголовок 🫣", hype:-2 },
-{ text:"Это монтаж 😱", hype:-3 },
-{ text:"Меня взломали #️⃣", hype:-3, all:true },
-{ text:"Подписчики в шоке 😮", hype:-4 },
-{ text:"Удаляй пока не поздно 🤫", hype:-5 },
-{ text:"Это контент, вы не понимаете 🙄", hype:-5, skip:true }
+
+{t:"Перегрел аудиторию 🔥",v:-1},
+
+{t:"Громкий заголовок 🫣",v:-2},
+
+{t:"Это монтаж 😱",v:-3},
+
+{t:"Меня взломали #️⃣ (все игроки -3)",all:-3},
+
+{t:"Подписчики в шоке 😮",v:-4},
+
+{t:"Удаляй пока не поздно 🤫",v:-5},
+
+{t:"Это контент, вы не понимаете 🙄",v:-5,skip:true}
+
 ];
 
-function initPlayer(){
 
-const name = localStorage.name || "Игрок";
-const color = localStorage.color || "red";
-
-players.push({
-name,
-color,
-pos:0,
-hype:0,
-skip:false
-});
-
-draw();
-updatePanel();
+// масштаб поля
+function scale(pos){
+const s=canvas.width/1024;
+return{
+x:pos.x*s,
+y:pos.y*s
+};
 }
 
+
+// рисование
 function draw(){
+
+if(!roomState) return;
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-for(let i=0;i<board.length;i++){
+ctx.drawImage(board,0,0,canvas.width,canvas.height);
 
-ctx.strokeRect(i*cellSize+20,120,cellSize,cellSize);
+roomState.players.forEach(p=>{
 
-ctx.fillText(i+1,i*cellSize+30,150);
+const cell=path[p.position];
 
-}
-
-players.forEach(p=>{
+const pos=scale(cell);
 
 ctx.beginPath();
-
-ctx.arc(
-p.pos*cellSize+42,
-142,
-10,
-0,
-Math.PI*2
-);
-
+ctx.arc(pos.x,pos.y,canvas.width*0.02,0,Math.PI*2);
 ctx.fillStyle=p.color;
 ctx.fill();
 
@@ -96,165 +123,60 @@ ctx.fill();
 
 }
 
-function updatePanel(){
+
+// панель игроков
+function updatePlayers(){
 
 playersPanel.innerHTML="";
 
-players.forEach(p=>{
+roomState.players.forEach(p=>{
 
-const div=document.createElement("div");
-div.innerText=p.name+" : "+p.hype+"🔥";
+const d=document.createElement("div");
 
-playersPanel.appendChild(div);
+d.innerHTML=
+`<span style="color:${p.color}">●</span>
+${p.name} : ${p.hype}🔥`;
+
+playersPanel.appendChild(d);
 
 });
 
 }
 
+
+// бросок кубика
 diceBtn.onclick=()=>{
+socket.emit("rollDice",room);
+};
 
-let p=players[currentPlayer];
 
-if(p.skip){
+// обновление игры
+socket.on("updateGame",(data)=>{
 
-message("Пропуск хода");
-p.skip=false;
-nextPlayer();
-return;
+roomState=data;
 
-}
-
-const dice=Math.floor(Math.random()*6)+1;
-
-message("🎲 Выпало "+dice);
-
-p.pos+=dice;
-
-if(p.pos>=board.length)
-p.pos=board.length-1;
-
-applyCell(p);
+updatePlayers();
 
 draw();
 
-updatePanel();
+});
 
-checkWin();
 
-};
+// выпал кубик
+socket.on("diceRolled",(roll)=>{
 
-function applyCell(p){
+messageBox.innerText="🎲 Выпало: "+roll;
 
-const cell=board[p.pos];
+});
 
-if(cell==="hype3") addHype(p,3);
-if(cell==="hype2") addHype(p,2);
-if(cell==="hype4") addHype(p,4);
-if(cell==="hype5") addHype(p,5);
-if(cell==="hype8") addHype(p,8);
 
-if(cell==="zerohype"){
+// сообщения
+socket.on("message",(msg)=>{
 
-p.hype=0;
-message("Весь хайп потерян");
+messageBox.innerText=msg;
 
-}
+});
 
-if(cell==="skip"){
 
-p.skip=true;
-message("Пропуск хода");
-
-}
-
-if(cell==="jail"){
-
-p.hype-=10;
-p.skip=true;
-message("Тюрьма -10 хайпа");
-
-}
-
-if(cell==="scandal") scandal(p);
-if(cell==="risk") risk(p);
-
-}
-
-function scandal(p){
-
-const card=scandals[Math.floor(Math.random()*scandals.length)];
-
-if(card.all){
-
-players.forEach(pl=>pl.hype+=card.hype);
-
-}else{
-
-p.hype+=card.hype;
-
-}
-
-if(card.skip) p.skip=true;
-
-message(card.text+" "+card.hype+"🔥");
-
-}
-
-function risk(p){
-
-const roll=Math.floor(Math.random()*6)+1;
-
-if(roll<=3){
-
-p.hype+=6;
-message("Риск удался +6🔥");
-
-}else{
-
-p.hype-=4;
-message("Риск провалился -4🔥");
-
-}
-
-}
-
-function addHype(p,val){
-
-p.hype+=val;
-
-message("+"+val+" хайп");
-
-}
-
-function message(text){
-
-messageBox.innerText=text;
-
-}
-
-function nextPlayer(){
-
-currentPlayer++;
-
-if(currentPlayer>=players.length)
-currentPlayer=0;
-
-}
-
-function checkWin(){
-
-let p=players[currentPlayer];
-
-if(p.hype>=70){
-
-alert(p.name+" победил 🔥");
-
-location.reload();
-
-}
-
-nextPlayer();
-
-}
-
-initPlayer();
+// загрузка поля
+board.onload=draw;
