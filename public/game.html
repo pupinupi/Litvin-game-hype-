@@ -1,41 +1,25 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>HYPE GAME</title>
-
 <link rel="stylesheet" href="style.css">
-
+<style>
+  body { font-family:sans-serif; text-align:center; margin:0; }
+  #gameCanvas { border:1px solid #000; margin-top:10px; }
+  #messageBox { margin:10px; font-size:18px; }
+  #playersPanel div { margin:2px; font-weight:bold; }
+  #diceBtn { font-size:20px; padding:10px; margin-top:10px; }
+</style>
 </head>
-
-<body class="gameBody">
-
-<div class="topPanel">
-
+<body>
+<h1>🔥 Путь к хайпу</h1>
 <div id="playersPanel"></div>
-
 <div id="messageBox"></div>
-
-</div>
-
 <canvas id="gameCanvas"></canvas>
-
-<div class="diceWrapper">
-
-<button id="diceBtn">
-БРОСИТЬ
-</button>
-
-</div>
-
+<button id="diceBtn">БРОСИТЬ КУБИК</button>
 <script src="/socket.io/socket.io.js"></script>
-
 <script src="game.js"></script>
-
 </body>
-
 </html>
