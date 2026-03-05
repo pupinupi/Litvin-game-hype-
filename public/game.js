@@ -1,19 +1,20 @@
 const socket = io();
 
+const name = localStorage.name;
+const room = localStorage.room;
+const color = localStorage.color;
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
-const params = new URLSearchParams(window.location.search);
-const room = params.get("room");
 
 let roomState = null;
 
 function resizeCanvas(){
 
-  const size = window.innerWidth * 0.95;
+const size = window.innerWidth * 0.95;
 
-  canvas.width = size;
-  canvas.height = size;
+canvas.width = size;
+canvas.height = size;
 
 }
 
@@ -51,111 +52,78 @@ let path = [];
 
 function scalePath(){
 
-  const scale = canvas.width / 1024;
+const scale = canvas.width / 1024;
 
-  path = basePath.map(p => ({
-    x:p.x*scale,
-    y:p.y*scale
-  }));
+path = basePath.map(p => ({
+x:p.x*scale,
+y:p.y*scale
+}));
 
 }
 
-boardImg.onload = () => {
+boardImg.onload = ()=>{
 
-  scalePath();
-  draw();
+scalePath();
+draw();
 
 };
 
-window.addEventListener("resize",()=>{
-
-  resizeCanvas();
-  scalePath();
-  draw();
-
-});
-
 function draw(){
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.drawImage(boardImg,0,0,canvas.width,canvas.height);
+ctx.drawImage(boardImg,0,0,canvas.width,canvas.height);
 
-  if(!roomState) return;
+if(!roomState) return;
 
-  const tokenRadius = canvas.width * 0.015;
+const tokenRadius = canvas.width*0.015;
 
-  roomState.players.forEach(player=>{
+roomState.players.forEach(player=>{
 
-    const pos = path[player.position];
+const pos = path[player.position];
 
-    ctx.beginPath();
+ctx.beginPath();
 
-    ctx.arc(
-      pos.x,
-      pos.y,
-      tokenRadius,
-      0,
-      Math.PI*2
-    );
+ctx.arc(
+pos.x,
+pos.y,
+tokenRadius,
+0,
+Math.PI*2
+);
 
-    ctx.fillStyle = player.color;
+ctx.fillStyle = player.color;
 
-    ctx.fill();
+ctx.fill();
 
-  });
+});
 
 }
 
 socket.on("updateGame",(roomData)=>{
 
-  roomState = roomData;
+roomState = roomData;
 
-  updatePlayersPanel();
-
-  draw();
+draw();
 
 });
 
 socket.on("diceRolled",(roll)=>{
 
-  document.getElementById("messageBox").innerText =
-  "Выпало: "+roll;
+document.getElementById("messageBox").innerText =
+"Выпало: "+roll;
 
 });
-
-socket.on("message",(msg)=>{
-
-  document.getElementById("messageBox").innerText = msg;
-
-});
-
-function updatePlayersPanel(){
-
-  const panel = document.getElementById("playersPanel");
-
-  panel.innerHTML = "";
-
-  roomState.players.forEach(p=>{
-
-    const div = document.createElement("div");
-
-    div.innerHTML = `
-    <span style="color:${p.color}">●</span>
-    ${p.name} (${p.hype})
-    `;
-
-    panel.appendChild(div);
-
-  });
-
-}
 
 document.getElementById("diceBtn").onclick = ()=>{
 
-  socket.emit("rollDice",room);
+socket.emit("rollDice",room);
 
 };
 
-// 🔥 важная строка — подключаемся к комнате
-socket.emit("requestGameState",room);
+// подключаемся к комнате
+socket.emit("joinRoom",{
+name:name,
+roomCode:room,
+color:color
+});
