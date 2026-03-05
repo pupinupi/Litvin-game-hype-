@@ -83,7 +83,7 @@ function draw(){
 
   if(!roomState) return;
 
-  const tokenRadius = canvas.width * 0.012;
+  const tokenRadius = canvas.width * 0.015;
 
   roomState.players.forEach(player=>{
 
@@ -156,3 +156,6 @@ document.getElementById("diceBtn").onclick = ()=>{
   socket.emit("rollDice",room);
 
 };
+
+// 🔥 важная строка — подключаемся к комнате
+socket.emit("requestGameState",room);
