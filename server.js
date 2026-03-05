@@ -31,6 +31,16 @@ io.on("connection", (socket) => {
 
   socket.on("joinRoom", ({ name, roomCode, color }) => {
 
+    socket.on("requestGameState",(roomCode)=>{
+
+  const room = rooms[roomCode];
+
+  if(!room) return;
+
+  socket.emit("updateGame",room);
+
+});
+    
     if (!rooms[roomCode]) {
       createRoom(roomCode, socket.id);
     }
