@@ -1,51 +1,169 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="ru">
 <head>
-
 <meta charset="UTF-8">
-<link rel="stylesheet" href="style.css">
+<title>Путь к хайпу</title>
 
+<style>
+
+body{
+    margin:0;
+    font-family:sans-serif;
+    text-align:center;
+    background:#111;
+    color:white;
+}
+
+#board{
+    position:relative;
+    width:800px;
+    margin:auto;
+}
+
+#gameImage{
+    width:100%;
+}
+
+#chip{
+    position:absolute;
+    width:20px;
+    height:20px;
+    background:red;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+}
+
+button{
+    margin-top:20px;
+    font-size:20px;
+    padding:10px 20px;
+}
+
+#coordsBox{
+    margin-top:10px;
+    text-align:left;
+    background:#222;
+    padding:10px;
+    width:800px;
+    margin:auto;
+    height:150px;
+    overflow:auto;
+    font-family:monospace;
+    white-space:pre-wrap;
+}
+
+</style>
 </head>
 
 <body>
 
-<h1>🔥 ЛИТВИН — ПУТЬ К ХАЙПУ</h1>
+<h1>🔥 Путь к хайпу</h1>
 
-<input id="name" placeholder="Имя">
+<h2 id="dice">🎲</h2>
 
-<input id="room" placeholder="Код комнаты">
+<div id="board">
 
-<select id="color">
+<img id="gameImage" src="board.jpg">
 
-<option value="yellow">Жёлтая</option>
-<option value="red">Красная</option>
-<option value="blue">Синяя</option>
-<option value="purple">Фиолетовая</option>
+<div id="chip"></div>
 
-</select>
+</div>
 
-<button onclick="join()">Войти</button>
+<button onclick="rollDice()">БРОСИТЬ КУБИК</button>
+
+<h3>Координаты клеток (копируй их)</h3>
+<div id="coordsBox"></div>
 
 <script>
 
-function join(){
+const board = document.getElementById("board");
+const chip = document.getElementById("chip");
+const coordsBox = document.getElementById("coordsBox");
 
-localStorage.name =
-document.getElementById("name").value;
+let path = [];
+let playerPos = 0;
 
-localStorage.room =
-document.getElementById("room").value;
 
-localStorage.color =
-document.getElementById("color").value;
+// КЛИК ПО ПОЛЮ = ДОБАВИТЬ КООРДИНАТУ
 
-location = "game.html";
+board.addEventListener("click", function(e){
+
+    const rect = board.getBoundingClientRect();
+
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    path.push({x,y});
+
+    drawPoint(x,y);
+    updateCoordsBox();
+
+});
+
+
+// РИСУЕМ ТОЧКУ КЛЕТКИ
+
+function drawPoint(x,y){
+
+    const p = document.createElement("div");
+
+    p.style.position="absolute";
+    p.style.left=x+"px";
+    p.style.top=y+"px";
+    p.style.width="8px";
+    p.style.height="8px";
+    p.style.background="yellow";
+    p.style.borderRadius="50%";
+    p.style.transform="translate(-50%,-50%)";
+
+    board.appendChild(p);
+
+}
+
+// ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ КООРДИНАТ
+
+function updateCoordsBox(){
+
+    let text = path.map((c,i)=>`${i}: {x:${Math.round(c.x)}, y:${Math.round(c.y)}}`).join("\n");
+
+    coordsBox.innerText = text;
+
+}
+
+
+// БРОСОК КУБИКА
+
+function rollDice(){
+
+    const dice = Math.floor(Math.random()*6)+1;
+
+    document.getElementById("dice").innerText="🎲 Выпало: "+dice;
+
+    movePlayer(dice);
+
+}
+
+
+// ДВИЖЕНИЕ ФИШКИ
+
+function movePlayer(steps){
+
+    if(path.length===0)return;
+
+    playerPos+=steps;
+
+    if(playerPos>=path.length){
+        playerPos=playerPos%path.length;
+    }
+
+    const cell = path[playerPos];
+
+    chip.style.left = cell.x+"px";
+    chip.style.top = cell.y+"px";
 
 }
 
 </script>
 
 </body>
-
 </html>
