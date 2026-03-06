@@ -61,12 +61,16 @@ socket.onmessage = e=>{
       updateOtherPlayers(data.players)
       break
     case "playerMoved":
-      if(data.playerName === playerName){
-        move(data.roll)
-      } else {
-        moveOtherPlayer(data.playerName, data.pos)
-      }
-      break
+
+  if(data.playerName === playerName){
+    move(data.roll)
+  } 
+  else {
+    otherPlayers[data.playerName].pos = data.pos
+    moveOtherPlayer(data.playerName, data.pos)
+  }
+
+break
   }
 }
 
