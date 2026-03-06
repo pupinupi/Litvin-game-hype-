@@ -49,14 +49,29 @@ highlightCell(pos)
 diceBtn.onclick = function(){
   if(skipNext){
     showPopup(riskWindow,"Вы пропускаете ход!",chip,"yellow")
-    skipNext = false
+    skipNext=false
     return
   }
-  let roll = Math.floor(Math.random()*6)+1
-  diceBtn.innerText = "🎲 " + roll
-  move(roll)
+  rollDiceAnimation()
 }
 
+// ===== АНИМАЦИЯ КУБИКА =====
+function rollDiceAnimation(){
+  let count=0
+  const interval = setInterval(()=>{
+    const fakeRoll = Math.floor(Math.random()*6)+1
+    diceBtn.innerText="🎲 "+fakeRoll
+    count++
+    if(count>=10){
+      clearInterval(interval)
+      const roll = Math.floor(Math.random()*6)+1
+      diceBtn.innerText="🎲 "+roll
+      move(roll)
+    }
+  },80)
+}
+
+// ===== ДВИЖЕНИЕ ФИШКИ =====
 function move(steps){
   let interval = setInterval(()=>{
     if(steps<=0){
@@ -82,36 +97,32 @@ function highlightCell(index){
   boardImg.style.boxShadow = `0 0 20px ${path[index].type=="scandal"?"red":path[index].type=="risk"?"yellow":"white"}`
 }
 
+// ===== ХАЙП =====
 function updateHype(){
   if(hype<0) hype=0
   if(hype>MAX_HYPE) hype=MAX_HYPE
-  hypeText.innerText = "Хайп: " + hype
-  hypeFill.style.width = (hype/MAX_HYPE*100) + "%"
+  hypeText.innerText = "Хайп: "+hype
+  hypeFill.style.width=(hype/MAX_HYPE*100)+"%"
 }
 
 function showPopup(container,text,target,color){
   container.innerText=text
-  container.className="popup "+color
+  container.className="popup "+color+" centerPopup"
   container.style.display="block"
-  container.style.left=target.style.left
-  container.style.top=parseInt(target.style.top)-40+"px"
-  setTimeout(()=>container.style.display="none",2000)
+  setTimeout(()=>container.style.display="none",2500)
 }
 
 function addHype(amount){
   hype+=amount
   updateHype()
-  logHype(amount)
+  hypeLog.innerText=playerName+" "+(amount>0?"+":"")+amount
   showPopup(hypeLog,(amount>0?"+":"")+amount+" хайп",chip,"green")
 }
 
-function logHype(amount){
-  hypeLog.innerText = playerName + " " + (amount>0?"+":"")+amount
-}
-
+// ===== ПРОВЕРКА КЛЕТКИ =====
 function checkCell(cell){
-  riskWindow.innerText = ""
-  cardWindow.innerText = ""
+  riskWindow.innerText=""
+  cardWindow.innerText=""
   switch(cell.type){
     case "+":
       addHype(cell.hype)
@@ -130,7 +141,6 @@ function checkCell(cell){
       hype=0
       updateHype()
       showPopup(cardWindow,"Весь хайп потерян!",chip,"red")
-      logHype(-hype)
       break
     case "minus10skip":
       addHype(-10)
@@ -149,6 +159,7 @@ function checkCell(cell){
   }
 }
 
+// ===== СКАНДАЛ =====
 function scandalCard(){
   const cards=[
     {txt:"🔥 перегрел аудиторию",h:-1},
@@ -159,14 +170,15 @@ function scandalCard(){
     {txt:"🤫 удаляй пока не поздно",h:-5},
     {txt:"🙄 это контент вы не понимаете",h:-5,skip:true}
   ]
-  const card = cards[Math.floor(Math.random()*cards.length)]
+  const card=cards[Math.floor(Math.random()*cards.length)]
   addHype(card.h)
   if(card.skip) skipNext=true
   showPopup(cardWindow,card.txt+" "+card.h+" хайп",chip,"red")
 }
 
+// ===== РИСК =====
 function riskCard(){
-  showPopup(riskWindow,"Риск! Бросьте кубик снова: 1-3 → +6, 4-6 → -4",chip,"yellow")
+  showPopup(riskWindow,"Риск! 1-3 → +6, 4-6 → -4",chip,"yellow")
   setTimeout(()=>{
     const roll=Math.floor(Math.random()*6)+1
     if(roll<=3){
@@ -179,13 +191,11 @@ function riskCard(){
   },2000)
 }
 
-// Краткое правило после лобби
+// ===== КРАТКОЕ ПРАВИЛО ПОСЛЕ ЛОББИ =====
 function showRuleWindow(){
   const txt="🏆 Победа при 70 хайпа\n🎲 Риск: 1-3 +6, 4-6 -4\n⛔ Тюрьма: пропуск хода\n⚖️ Суд: пропуск хода"
-  ruleWindow.innerText = txt
-  ruleWindow.className="popup yellow"
+  ruleWindow.innerText=txt
+  ruleWindow.className="popup yellow centerPopup"
   ruleWindow.style.display="block"
-  ruleWindow.style.left="50%"
-  ruleWindow.style.top="50px"
   setTimeout(()=>ruleWindow.style.display="none",5000)
 }
