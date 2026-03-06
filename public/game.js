@@ -1,112 +1,131 @@
-let chip = document.getElementById("chip")
+const chip=document.getElementById("chip")
 
-let color = localStorage.getItem("chip") || "red"
+const playerName=localStorage.getItem("playerName")
+const chipColor=localStorage.getItem("chipColor")
 
-chip.style.background = color
+document.getElementById("player").innerText=playerName
 
-let position = 0
+chip.style.background=chipColor
 
-const path = [
+let hype=10
+let pos=0
 
-{ x:20, y:520 },
-{ x:80, y:520 },
-{ x:140, y:520 },
-{ x:200, y:520 },
-{ x:260, y:520 },
-{ x:320, y:520 },
-{ x:380, y:520 },
-{ x:440, y:520 },
-{ x:500, y:520 },
 
-{ x:500, y:460 },
-{ x:500, y:400 },
-{ x:500, y:340 },
-{ x:500, y:280 },
+const path=[
 
-{ x:440, y:280 },
-{ x:380, y:280 },
-{ x:320, y:280 },
-{ x:260, y:280 }
+{x:87,y:467},
+{x:63,y:354},
+{x:66,y:285},
+{x:67,y:187},
+{x:76,y:103},
+{x:176,y:77},
+{x:287,y:77},
+{x:397,y:79},
+{x:515,y:76},
+{x:621,y:86},
+{x:721,y:102},
+{x:713,y:181},
+{x:720,y:268},
+{x:720,y:355},
+{x:711,y:454},
+{x:619,y:484},
+{x:513,y:484},
+{x:398,y:471},
+{x:290,y:489},
+{x:158,y:486}
 
 ]
 
-function moveChip(steps){
+moveChip()
 
-let moveInterval = setInterval(()=>{
 
-if(steps <= 0){
+function moveChip(){
 
-clearInterval(moveInterval)
-eventSquare()
-
-return
-}
-
-position++
-
-if(position >= path.length){
-position = path.length - 1
-}
-
-chip.style.left = path[position].x + "px"
-chip.style.top = path[position].y + "px"
-
-steps--
-
-},300)
+chip.style.left=path[pos].x+"px"
+chip.style.top=path[pos].y+"px"
 
 }
 
-document.getElementById("dice").onclick = function(){
 
-let roll = Math.floor(Math.random()*6)+1
 
-document.getElementById("diceResult").innerText = "Выпало: " + roll
+function rollDice(){
 
-moveChip(roll)
+const dice=Math.floor(Math.random()*6)+1
+
+document.getElementById("dice").innerText="🎲 "+dice
+
+pos+=dice
+
+if(pos>=path.length){
+pos=pos-path.length
+}
+
+moveChip()
+
+checkScandal()
 
 }
 
-function eventSquare(){
 
-let rand = Math.random()
 
-if(rand < 0.3){
+function checkScandal(){
 
-showCard()
+const chance=Math.random()
 
-}else if(rand < 0.6){
+if(chance<0.4){
 
-showRisk()
+const scandals=[
 
-}
+{txt:"🔥 перегрел аудиторию",h:-1},
+{txt:"🫣 громкий заголовок",h:-2},
+{txt:"😱 это монтаж",h:-3},
+{txt:"#️⃣ меня взломали",h:-3},
+{txt:"😮 подписчики в шоке",h:-4},
+{txt:"🤫 удаляй пока не поздно",h:-5},
+{txt:"🙄 это контент вы не понимаете",h:-5}
 
-}
-
-function showCard(){
-
-let cards = [
-"Вы нашли клад 💰",
-"Потеряли 10 монет 💸",
-"Получили бонус ⭐"
 ]
 
-let text = cards[Math.floor(Math.random()*cards.length)]
+const s=scandals[Math.floor(Math.random()*scandals.length)]
 
-alert(text)
+hype+=s.h
+
+document.getElementById("riskWindow").innerText=s.txt+" "+s.h+" хайп"
+
+showHype(s.h)
+
+updateHype()
 
 }
 
-function showRisk(){
+}
 
-let risks = [
-"Вы пропускаете ход",
-"Вернитесь на 2 клетки",
-"Получите +1 ход"
-]
 
-let text = risks[Math.floor(Math.random()*risks.length)]
 
-alert("Риск! " + text)
+function updateHype(){
+
+document.getElementById("hype").innerText="Хайп: "+hype
+
+}
+
+
+
+function showHype(value){
+
+const pop=document.createElement("div")
+
+pop.innerText=value
+
+pop.style.position="absolute"
+pop.style.left=chip.style.left
+pop.style.top=chip.style.top
+pop.style.color="yellow"
+pop.style.fontSize="20px"
+
+document.getElementById("board").appendChild(pop)
+
+setTimeout(()=>{
+pop.remove()
+},1000)
 
 }
