@@ -199,3 +199,37 @@ function showRuleWindow(){
   ruleWindow.style.display="block"
   setTimeout(()=>ruleWindow.style.display="none",5000)
 }
+
+// ===== ДОБАВЛЯЕМ ВСПЛЕСК НА ФИШКЕ =====
+function addHype(amount){
+  hype += amount
+  if(hype<0) hype=0
+  if(hype>MAX_HYPE) hype=MAX_HYPE
+  hypeText.innerText = "Хайп: " + hype
+  hypeFill.style.width = (hype/MAX_HYPE*100)+"%"
+
+  // Лог
+  hypeLog.innerText = playerName + " " + (amount>0?"+":"")+amount
+  showPopup(hypeLog,(amount>0?"+":"")+amount+" хайп",chip,"green")
+
+  // Всплеск на фишке
+  chip.classList.remove("hypePop")
+  void chip.offsetWidth  // триггер перезапуска анимации
+  chip.classList.add("hypePop")
+}
+
+// ===== ЦЕНТР popup НА ПОЛЕ =====
+function showPopup(container,text,target,color){
+  container.innerText = text
+  container.className = "popup "+color
+  container.style.display = "block"
+
+  // Получаем координаты поля
+  const boardRect = document.getElementById("board").getBoundingClientRect()
+  const popupRect = container.getBoundingClientRect()
+  // Центрируем на поле
+  container.style.left = (boardRect.left + boardRect.width/2 - popupRect.width/2) + "px"
+  container.style.top = (boardRect.top + boardRect.height/2 - popupRect.height/2) + "px"
+
+  setTimeout(()=>container.style.display="none",2500)
+}
