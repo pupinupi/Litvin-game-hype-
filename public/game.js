@@ -1,18 +1,12 @@
-const canvas = document.getElementById("gameCanvas")
-const ctx = canvas.getContext("2d")
-
-canvas.width = 800
-canvas.height = 600
-
-const board = new Image()
-board.src = "board.jpg"
+const chip = document.getElementById("chip")
+const diceBtn = document.getElementById("diceBtn")
+const hypeText = document.getElementById("hype")
 
 let position = 0
 let hype = 0
 
-const color = localStorage.color || "red"
+chip.style.background = localStorage.color || "red"
 
-// координаты твоего поля
 const path = [
 
 {x:87,y:467},
@@ -38,92 +32,26 @@ const path = [
 
 ]
 
-board.onload = draw
+moveChip()
 
-
-function draw(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-ctx.drawImage(board,0,0,800,600)
-
-// фишка
-let p = path[position]
-
-ctx.beginPath()
-ctx.arc(p.x,p.y,12,0,Math.PI*2)
-ctx.fillStyle=color
-ctx.fill()
-
-}
-
-
-document.getElementById("diceBtn").onclick=()=>{
+diceBtn.onclick = ()=>{
 
 let roll = Math.floor(Math.random()*6)+1
 
 position += roll
 
-if(position>19)
-position=19
+if(position >= path.length)
+position = path.length-1
 
-cellEffect()
-
-draw()
+moveChip()
 
 }
 
+function moveChip(){
 
-function cellEffect(){
+const cell = path[position]
 
-switch(position){
-
-case 1: hype+=3; message("+3 хайп"); break
-case 2: hype+=2; message("+2 хайп"); break
-case 5: hype+=2; message("+2 хайп"); break
-case 7: hype+=3; message("+3 хайп"); break
-case 8: hype+=5; message("+5 хайп"); break
-case 11: hype+=3; message("+3 хайп"); break
-case 13: hype+=3; message("+3 хайп"); break
-case 15: hype+=2; message("+2 хайп"); break
-case 17: hype+=8; message("+8 хайп"); break
-case 19: hype+=4; message("+4 хайп"); break
-
-case 9:
-case 18:
-hype=0
-message("Весь хайп потерян")
-break
-
-case 10:
-hype-=10
-message("-10 хайп")
-break
-
-}
-
-if(hype<0) hype=0
-
-if(hype>=70){
-
-alert("ПОБЕДА!")
-
-}
-
-updatePanel()
-
-}
-
-
-function message(text){
-
-document.getElementById("messageBox").innerText=text
-
-}
-
-
-function updatePanel(){
-
-document.getElementById("playersPanel").innerText="Хайп: "+hype
+chip.style.left = cell.x+"px"
+chip.style.top = cell.y+"px"
 
 }
