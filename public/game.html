@@ -5,28 +5,46 @@
 <title>Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h2 id="player"></h2>
+<h1>🔥 Путь к хайпу</h1>
+
+<div id="player"></div>
+<div id="status">Ваш ход</div>
 
 <div id="hypeBar">
-  <div id="hypeValue">Хайп: 0</div>
-  <div id="hypeScale"><div id="hypeFill"></div></div>
+<div id="hypeValue">Хайп: 0</div>
+<div id="hypeScale">
+<div id="hypeFill"></div>
+</div>
 </div>
 
 <div id="board">
-  <img src="board.jpg" id="boardImg">
-  <div id="chip"></div>
+
+<img id="boardImg" src="board.jpg">
+
+<div id="chip"></div>
+
+<div id="diceResult"></div>
+
 </div>
 
 <button id="diceBtn">🎲 Бросить кубик</button>
 
-<!-- Всплывающие окна -->
-<div id="riskWindow" class="popup centerPopup"></div>
-<div id="cardWindow" class="popup centerPopup"></div>
-<div id="hypeLog" class="popup"></div>
-<div id="ruleWindow" class="popup centerPopup"></div>
+<div id="hypeLog"></div>
+
+<div id="riskWindow" class="popup"></div>
+<div id="cardWindow" class="popup"></div>
+<div id="ruleWindow" class="popup"></div>
+
+<div id="winScreen">
+<h1>🏆 Победа!</h1>
+<p id="winnerText"></p>
+<button onclick="location.reload()">Играть снова</button>
+</div>
+
+<script src="game.js"></script>
 
 </body>
-<script src="game.js"></script>
 </html>
