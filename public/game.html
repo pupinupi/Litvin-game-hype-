@@ -8,6 +8,7 @@
 <body>
 
 <h2 id="player"></h2>
+
 <div id="hypeBar">
   <div id="hypeValue">Хайп: 0</div>
   <div id="hypeScale"><div id="hypeFill"></div></div>
@@ -20,8 +21,11 @@
 
 <button id="diceBtn">🎲 Бросить кубик</button>
 
-<div id="riskWindow"></div>
-<div id="cardWindow"></div>
+<!-- Всплывающие окна -->
+<div id="riskWindow" class="popup"></div>
+<div id="cardWindow" class="popup"></div>
+<div id="hypeLog" class="popup"></div>
+<div id="ruleWindow" class="popup"></div>
 
 <script src="game.js"></script>
 </body>
