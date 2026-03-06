@@ -1,13 +1,16 @@
 // server.js
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ port: 8080 });
+// Render задаёт порт через env
+const port = process.env.PORT || 8080;
+const wss = new WebSocket.Server({ port });
 
 let rooms = {}; // { roomId: { players: { playerName: { chipColor, pos, hype, ws } } } }
+const pathLength = 18; // количество клеток
 
 wss.on('connection', ws => {
   ws.on('message', message => {
-    try{
+    try {
       const data = JSON.parse(message);
 
       switch(data.type){
@@ -23,26 +26,26 @@ wss.on('connection', ws => {
           const roomDice = rooms[data.roomId];
           if(!roomDice) return;
           const roll = Math.floor(Math.random()*6)+1;
-          let player = roomDice.players[data.playerName];
+          const player = roomDice.players[data.playerName];
           if(!player) return;
-          player.pos = (player.pos + roll) %  pathLength;
+          player.pos = (player.pos + roll) % pathLength;
           broadcastPlayerMoved(data.roomId, data.playerName, roll, player.pos);
           break;
 
-        case "skipTurn":
-          const roomSkip = rooms[data.roomId];
-          if(roomSkip && roomSkip.players[data.playerName]){
-            roomSkip.players[data.playerName].skipNext = true;
+        case "updateHype":
+          const roomHype = rooms[data.roomId];
+          if(!roomHype) return;
+          if(roomHype.players[data.playerName]){
+            roomHype.players[data.playerName].hype = data.hype;
             broadcastRoom(data.roomId);
           }
           break;
-
       }
-    }catch(e){ console.log(e) }
+    } catch(e){ console.log(e) }
   });
 
   ws.on('close', () => {
-    // Удаляем игрока из всех комнат
+    // удаляем игрока из всех комнат
     for(let roomId in rooms){
       for(let name in rooms[roomId].players){
         if(rooms[roomId].players[name].ws === ws){
@@ -75,5 +78,4 @@ function broadcastPlayerMoved(roomId, playerName, roll, pos){
   }
 }
 
-const pathLength = 18; // количество клеток
-console.log("Server started on ws://localhost:8080");
+console.log("Server started on port", port);
