@@ -48,7 +48,7 @@ moveChip()
 showRuleWindow()
 
 // ===== WebSocket через WSS =====
-const socket = new WebSocket("wss://YOUR_RENDER_URL_HERE") // замените на URL Render
+const socket = new WebSocket("wss://litvin-game-hype-5mce.onrender.com") // замените на URL Render
 
 socket.onopen = ()=>{
   socket.send(JSON.stringify({ type:"joinRoom", roomId: currentRoom, playerName, chipColor }));
