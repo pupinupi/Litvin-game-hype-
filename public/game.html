@@ -5,28 +5,24 @@
 <title>Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <h2 id="player"></h2>
-
-<h3 id="dice">🎲</h3>
-
-<div id="board">
-
-<img src="board.jpg" id="boardImg">
-
-<div id="chip"></div>
-
+<div id="hypeBar">
+  <div id="hypeValue">Хайп: 0</div>
+  <div id="hypeScale"><div id="hypeFill"></div></div>
 </div>
 
-<button onclick="rollDice()">Бросить кубик</button>
+<div id="board">
+  <img src="board.jpg" id="boardImg">
+  <div id="chip"></div>
+</div>
 
-<h3 id="hype">Хайп: 10</h3>
+<button id="diceBtn">🎲 Бросить кубик</button>
 
 <div id="riskWindow"></div>
+<div id="cardWindow"></div>
 
 <script src="game.js"></script>
-
 </body>
 </html>
