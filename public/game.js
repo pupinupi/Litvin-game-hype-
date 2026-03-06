@@ -6,6 +6,7 @@ const riskWindow = document.getElementById("riskWindow")
 const cardWindow = document.getElementById("cardWindow")
 const playerName = localStorage.getItem("playerName")
 const chipColor = localStorage.getItem("chipColor")
+
 document.getElementById("player").innerText = playerName
 chip.style.background = chipColor
 
@@ -14,8 +15,9 @@ let pos = 0
 let skipNext = false
 const MAX_HYPE = 70
 
+// Тип каждой клетки: start, +, scandal, risk, minusAll, minus15skip, minus10skip, skip
 const path=[
-{x:87,y:467,type:"start",hype:5},
+{x:87,y:467,type:"start",hype:5},                  // Старт +5 хайп
 {x:63,y:354,type:"+",hype:3},
 {x:66,y:285,type:"+",hype:2},
 {x:67,y:187,type:"scandal",hype:0},
@@ -24,7 +26,7 @@ const path=[
 {x:287,y:77,type:"scandal",hype:0},
 {x:397,y:79,type:"+",hype:3},
 {x:515,y:76,type:"+",hype:5},
-{x:621,y:86,type:"minusAll",hype:-20},
+{x:621,y:86,type:"minusAll",hype:-999},           // В старой версии
 {x:721,y:102,type:"minus10skip",hype:-10},
 {x:713,y:181,type:"+",hype:3},
 {x:720,y:268,type:"risk",hype:0},
@@ -33,7 +35,7 @@ const path=[
 {x:619,y:484,type:"+",hype:2},
 {x:513,y:484,type:"scandal",hype:0},
 {x:398,y:471,type:"+",hype:8},
-{x:290,y:489,type:"minusAll",hype:-20},
+{x:290,y:489,type:"minus15skip",hype:-15},        // Блокировка канала -15
 {x:158,y:486,type:"+",hype:4},
 ]
 
@@ -95,6 +97,10 @@ function checkCell(cell){
     case "+":
       addHype(cell.hype)
       break
+    case "start":
+      addHype(cell.hype)
+      showPopup("+5 хайп за старт")
+      break
     case "scandal":
       scandalCard()
       break
@@ -110,6 +116,11 @@ function checkCell(cell){
       addHype(-10)
       skipNext=true
       showPopup("-10 хайп и пропуск хода")
+      break
+    case "minus15skip":
+      addHype(-15)
+      skipNext=true
+      showPopup("-15 хайп за блокировку канала и пропуск хода")
       break
     case "skip":
       skipNext=true
