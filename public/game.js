@@ -1,17 +1,23 @@
 const chip = document.getElementById("chip")
-const diceBtn = document.getElementById("diceBtn")
-const diceResult = document.getElementById("diceResult")
-const message = document.getElementById("message")
+const dice = document.getElementById("dice")
+
+const effect = document.getElementById("effect")
+
 const hypeFill = document.getElementById("hypeFill")
+const hypeText = document.getElementById("hypeText")
+
+const winScreen = document.getElementById("win")
 
 let position = 0
 let hype = 0
-let skipTurn = false
 
-const color = localStorage.color || "red"
-chip.style.background = color
+// цвет из лобби
+chip.style.background = localStorage.color || "red"
 
+
+// координаты клеток
 const path = [
+
 {x:87,y:467},
 {x:63,y:354},
 {x:66,y:285},
@@ -32,22 +38,28 @@ const path = [
 {x:398,y:471},
 {x:290,y:489},
 {x:158,y:486}
+
 ]
 
-chip.style.left = path[0].x+"px"
-chip.style.top = path[0].y+"px"
 
-function updateHypeBar(){
+moveChip()
 
-let percent = Math.max(0,Math.min(100,(hype/70)*100))
-hypeFill.style.width = percent+"%"
 
-if(hype>=70){
-message.innerText="🏆 ПОБЕДА! 70 ХАЙПА!"
-diceBtn.disabled=true
+dice.onclick = ()=>{
+
+let roll = Math.floor(Math.random()*6)+1
+
+position += roll
+
+if(position >= path.length)
+position = path.length-1
+
+moveChip()
+
+cellEffect()
+
 }
 
-}
 
 function moveChip(){
 
@@ -56,100 +68,84 @@ chip.style.top = path[position].y+"px"
 
 }
 
-function scandal(){
 
-const cards=[
-{t:"Перегрел аудиторию 🔥",h:-1},
-{t:"Громкий заголовок 🫣",h:-2},
-{t:"Это монтаж 😱",h:-3},
-{t:"Меня взломали #️⃣",all:-3},
-{t:"Подписчики в шоке 😮",h:-4},
-{t:"Удаляй пока не поздно 🤫",h:-5},
-{t:"Это контент, вы не понимаете 🙄",h:-5,skip:true}
-]
+function cellEffect(){
 
-let c=cards[Math.floor(Math.random()*cards.length)]
-
-message.innerText="СКАНДАЛ: "+c.t
-
-if(c.h) hype+=c.h
-
-if(c.skip) skipTurn=true
-
-updateHypeBar()
-
-}
-
-function risk(){
-
-let roll=Math.floor(Math.random()*6)+1
-
-if(roll<=3){
-
-hype+=6
-message.innerText="Риск удался! +6 хайпа"
-
-}else{
-
-hype-=4
-message.innerText="Риск не удался! -4 хайпа"
-
-}
-
-updateHypeBar()
-
-}
-
-function cellAction(){
+let change = 0
 
 switch(position){
 
-case 1: hype+=3; break
-case 2: hype+=2; break
-case 3: scandal(); return
-case 4: risk(); return
-case 5: hype+=2; break
-case 6: scandal(); return
-case 7: hype+=3; break
-case 8: hype+=5; break
-case 9: hype=0; break
-case 10: hype-=10; skipTurn=true; break
-case 11: hype+=3; break
-case 12: risk(); return
-case 13: hype+=3; break
-case 14: skipTurn=true; break
-case 15: hype+=2; break
-case 16: scandal(); return
-case 17: hype+=8; break
-case 18: hype=0; break
-case 19: hype+=4; break
+case 1: change=3; break
+case 2: change=2; break
+case 5: change=2; break
+case 7: change=3; break
+case 8: change=5; break
+case 11: change=3; break
+case 13: change=3; break
+case 15: change=2; break
+case 17: change=8; break
+case 19: change=4; break
 
-}
+case 9:
+case 18:
+hype=0
+showEffect("ВСЁ -0")
+updateHype()
+return
 
-updateHypeBar()
-
-}
-
-diceBtn.onclick=()=>{
-
-if(skipTurn){
-
-message.innerText="⛔ Пропуск хода"
-skipTurn=false
+case 10:
+hype-=10
+showEffect("-10")
+updateHype()
 return
 
 }
 
-let roll=Math.floor(Math.random()*6)+1
 
-diceResult.innerText="🎲 Выпало: "+roll
+if(change!==0){
 
-position+=roll
+hype += change
+showEffect("+"+change)
 
-if(position>=path.length) position=path.length-1
+updateHype()
 
-moveChip()
+}
 
-setTimeout(cellAction,300)
+}
+
+
+function updateHype(){
+
+if(hype<0) hype=0
+
+hypeFill.style.width = (hype/70*100)+"%"
+
+hypeText.innerText = "Хайп: "+hype+" / 70"
+
+
+if(hype>=70){
+
+winScreen.style.display="flex"
+
+}
+
+}
+
+
+function showEffect(text){
+
+effect.innerText=text
+
+effect.style.left = chip.style.left
+effect.style.top = chip.style.top
+
+effect.style.opacity=1
+effect.style.transform="translate(-50%,-50%)"
+
+setTimeout(()=>{
+
+effect.style.opacity=0
+
+},900)
 
 }
