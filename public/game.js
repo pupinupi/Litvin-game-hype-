@@ -25,25 +25,42 @@ const MAX_HYPE = 70
 
 // Путь клеток
 const path = [
-  {x:87,y:467,type:"start",hype:5},
-  {x:63,y:354,type:"+",hype:3},
-  {x:66,y:285,type:"+",hype:2},
-  {x:67,y:187,type:"scandal"},
-  {x:76,y:103,type:"risk"},
-  {x:176,y:77,type:"+",hype:2},
-  {x:287,y:77,type:"scandal"},
-  {x:515,y:76,type:"+",hype:5},
-  {x:721,y:102,type:"minus10skip"},
-  {x:713,y:181,type:"+",hype:3},
-  {x:720,y:268,type:"risk"},
-  {x:720,y:355,type:"+",hype:3},
-  {x:711,y:454,type:"skip"},
-  {x:619,y:484,type:"+",hype:2},
-  {x:513,y:484,type:"scandal"},
-  {x:290,y:489,type:"minus15skip"},
-  {x:158,y:486,type:"+",hype:4}
-]
 
+{x:87,y:467,type:"start",hype:5}, //1
+
+{x:63,y:354,type:"+",hype:3}, //2
+{x:66,y:285,type:"+",hype:2}, //3
+
+{x:67,y:187,type:"scandal"}, //4
+{x:76,y:103,type:"risk"}, //5
+
+{x:176,y:77,type:"+",hype:2}, //6
+{x:287,y:77,type:"scandal"}, //7
+
+{x:397,y:79,type:"+",hype:3}, //8
+{x:515,y:76,type:"+",hype:5}, //9
+
+{x:621,y:86,type:"minus15"}, //10
+
+{x:721,y:102,type:"minus8skip"}, //11
+
+{x:713,y:181,type:"+",hype:3}, //12
+{x:720,y:268,type:"risk"}, //13
+{x:720,y:355,type:"+",hype:3}, //14
+
+{x:711,y:454,type:"skip"}, //15
+
+{x:619,y:484,type:"+",hype:2}, //16
+
+{x:513,y:484,type:"scandal"}, //17
+
+{x:398,y:471,type:"+",hype:8}, //18
+
+{x:290,y:489,type:"minus15"}, //19
+
+{x:158,y:486,type:"+",hype:4} //20
+
+]
 moveChip()
 showRuleWindow()
 
