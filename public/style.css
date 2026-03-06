@@ -55,28 +55,58 @@ button{
 
 .popup{
   position:absolute;
-  min-width:200px;
+  min-width:220px;
+  max-width:300px;
   background:#222;
   color:white;
-  border-radius:8px;
-  padding:10px;
-  font-size:16px;
+  border-radius:12px;
+  padding:20px;
+  font-size:18px;
   z-index:100;
   display:none;
-  box-shadow:0 0 10px red;
+  text-align:center;
+  box-shadow:0 0 20px red;
 }
 
 .popup.red{
   background:#800000;
-  box-shadow:0 0 15px red;
+  box-shadow:0 0 25px red;
 }
 
 .popup.green{
   background:#008000;
-  box-shadow:0 0 15px lime;
+  box-shadow:0 0 25px lime;
 }
 
 .popup.yellow{
   background:#888800;
-  box-shadow:0 0 15px yellow;
+  box-shadow:0 0 25px yellow;
+}
+
+.centerPopup{
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+}
+
+#hypeLog{
+  position:absolute;
+  left:10px;
+  bottom:10px;
+  background:#222;
+  padding:8px;
+  border-radius:8px;
+  font-size:16px;
+}
+
+#diceBtn{
+  font-size:22px;
+  padding:10px 25px;
+  margin-top:20px;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
 }
