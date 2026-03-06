@@ -4,9 +4,11 @@ const hypeText = document.getElementById("hypeValue")
 const hypeFill = document.getElementById("hypeFill")
 const riskWindow = document.getElementById("riskWindow")
 const cardWindow = document.getElementById("cardWindow")
+const hypeLog = document.getElementById("hypeLog")
+const ruleWindow = document.getElementById("ruleWindow")
+
 const playerName = localStorage.getItem("playerName")
 const chipColor = localStorage.getItem("chipColor")
-
 document.getElementById("player").innerText = playerName
 chip.style.background = chipColor
 
@@ -15,9 +17,11 @@ let pos = 0
 let skipNext = false
 const MAX_HYPE = 70
 
-// Тип каждой клетки: start, +, scandal, risk, minusAll, minus15skip, minus10skip, skip
+// Показ краткого правила после лобби
+showRuleWindow()
+
 const path=[
-{x:87,y:467,type:"start",hype:5},                  // Старт +5 хайп
+{x:87,y:467,type:"start",hype:5},
 {x:63,y:354,type:"+",hype:3},
 {x:66,y:285,type:"+",hype:2},
 {x:67,y:187,type:"scandal",hype:0},
@@ -26,7 +30,7 @@ const path=[
 {x:287,y:77,type:"scandal",hype:0},
 {x:397,y:79,type:"+",hype:3},
 {x:515,y:76,type:"+",hype:5},
-{x:621,y:86,type:"minusAll",hype:-999},           // В старой версии
+{x:621,y:86,type:"minus15skip",hype:-15},
 {x:721,y:102,type:"minus10skip",hype:-10},
 {x:713,y:181,type:"+",hype:3},
 {x:720,y:268,type:"risk",hype:0},
@@ -35,15 +39,16 @@ const path=[
 {x:619,y:484,type:"+",hype:2},
 {x:513,y:484,type:"scandal",hype:0},
 {x:398,y:471,type:"+",hype:8},
-{x:290,y:489,type:"minus15skip",hype:-15},        // Блокировка канала -15
+{x:290,y:489,type:"minus15skip",hype:-15},
 {x:158,y:486,type:"+",hype:4},
 ]
 
 moveChip()
+highlightCell(pos)
 
 diceBtn.onclick = function(){
   if(skipNext){
-    riskWindow.innerText = "Вы пропускаете ход!"
+    showPopup(riskWindow,"Вы пропускаете ход!",chip,"yellow")
     skipNext = false
     return
   }
@@ -61,6 +66,7 @@ function move(steps){
     }
     pos = (pos+1) % path.length
     moveChip()
+    highlightCell(pos)
     steps--
   },200)
 }
@@ -71,6 +77,11 @@ function moveChip(){
   chip.style.top = cell.y+"px"
 }
 
+function highlightCell(index){
+  const boardImg = document.getElementById("boardImg")
+  boardImg.style.boxShadow = `0 0 20px ${path[index].type=="scandal"?"red":path[index].type=="risk"?"yellow":"white"}`
+}
+
 function updateHype(){
   if(hype<0) hype=0
   if(hype>MAX_HYPE) hype=MAX_HYPE
@@ -78,16 +89,24 @@ function updateHype(){
   hypeFill.style.width = (hype/MAX_HYPE*100) + "%"
 }
 
-function showPopup(text){
-  const pop = document.createElement("div")
-  pop.innerText = text
-  pop.style.position = "absolute"
-  pop.style.left = chip.style.left
-  pop.style.top = chip.style.top
-  pop.style.color = "yellow"
-  pop.style.fontSize = "20px"
-  document.getElementById("board").appendChild(pop)
-  setTimeout(()=>pop.remove(),1200)
+function showPopup(container,text,target,color){
+  container.innerText=text
+  container.className="popup "+color
+  container.style.display="block"
+  container.style.left=target.style.left
+  container.style.top=parseInt(target.style.top)-40+"px"
+  setTimeout(()=>container.style.display="none",2000)
+}
+
+function addHype(amount){
+  hype+=amount
+  updateHype()
+  logHype(amount)
+  showPopup(hypeLog,(amount>0?"+":"")+amount+" хайп",chip,"green")
+}
+
+function logHype(amount){
+  hypeLog.innerText = playerName + " " + (amount>0?"+":"")+amount
 }
 
 function checkCell(cell){
@@ -99,7 +118,7 @@ function checkCell(cell){
       break
     case "start":
       addHype(cell.hype)
-      showPopup("+5 хайп за старт")
+      showPopup(cardWindow,"Старт! +5 хайп",chip,"green")
       break
     case "scandal":
       scandalCard()
@@ -110,29 +129,24 @@ function checkCell(cell){
     case "minusAll":
       hype=0
       updateHype()
-      showPopup("Весь хайп потерян!")
+      showPopup(cardWindow,"Весь хайп потерян!",chip,"red")
+      logHype(-hype)
       break
     case "minus10skip":
       addHype(-10)
       skipNext=true
-      showPopup("-10 хайп и пропуск хода")
+      showPopup(cardWindow,"-10 хайп и пропуск хода",chip,"red")
       break
     case "minus15skip":
       addHype(-15)
       skipNext=true
-      showPopup("-15 хайп за блокировку канала и пропуск хода")
+      showPopup(cardWindow,"-15 хайп и пропуск хода (блокировка канала)",chip,"red")
       break
     case "skip":
       skipNext=true
-      showPopup("Пропуск хода")
+      showPopup(cardWindow,"Пропуск хода",chip,"yellow")
       break
   }
-}
-
-function addHype(amount){
-  hype+=amount
-  updateHype()
-  showPopup((amount>0?"+":"")+amount+" хайп")
 }
 
 function scandalCard(){
@@ -148,16 +162,30 @@ function scandalCard(){
   const card = cards[Math.floor(Math.random()*cards.length)]
   addHype(card.h)
   if(card.skip) skipNext=true
-  cardWindow.innerText = card.txt + " " + card.h + " хайп"
+  showPopup(cardWindow,card.txt+" "+card.h+" хайп",chip,"red")
 }
 
 function riskCard(){
-  const roll = Math.floor(Math.random()*6)+1
-  if(roll<=3){
-    addHype(6)
-    riskWindow.innerText = "Риск удался! +6 хайп"
-  } else {
-    addHype(-4)
-    riskWindow.innerText = "Риск не удался! -4 хайп"
-  }
+  showPopup(riskWindow,"Риск! Бросьте кубик снова: 1-3 → +6, 4-6 → -4",chip,"yellow")
+  setTimeout(()=>{
+    const roll=Math.floor(Math.random()*6)+1
+    if(roll<=3){
+      addHype(6)
+      showPopup(riskWindow,"Риск удался! +6 хайп",chip,"green")
+    } else {
+      addHype(-4)
+      showPopup(riskWindow,"Риск не удался! -4 хайп",chip,"red")
+    }
+  },2000)
+}
+
+// Краткое правило после лобби
+function showRuleWindow(){
+  const txt="🏆 Победа при 70 хайпа\n🎲 Риск: 1-3 +6, 4-6 -4\n⛔ Тюрьма: пропуск хода\n⚖️ Суд: пропуск хода"
+  ruleWindow.innerText = txt
+  ruleWindow.className="popup yellow"
+  ruleWindow.style.display="block"
+  ruleWindow.style.left="50%"
+  ruleWindow.style.top="50px"
+  setTimeout(()=>ruleWindow.style.display="none",5000)
 }
