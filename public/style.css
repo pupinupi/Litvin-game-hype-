@@ -30,30 +30,6 @@ button{
   margin-top:20px;
 }
 
-.chips{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-}
-
-.chip{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  cursor:pointer;
-}
-
-.red{background:red}
-.blue{background:blue}
-.green{background:lime}
-.yellow{background:yellow}
-
-#riskWindow, #cardWindow{
-  margin-top:20px;
-  font-size:18px;
-  min-height:24px;
-}
-
 #hypeBar{
   margin:10px auto;
   width:400px;
@@ -75,4 +51,32 @@ button{
   height:100%;
   background:yellow;
   border-radius:10px;
+}
+
+.popup{
+  position:absolute;
+  min-width:200px;
+  background:#222;
+  color:white;
+  border-radius:8px;
+  padding:10px;
+  font-size:16px;
+  z-index:100;
+  display:none;
+  box-shadow:0 0 10px red;
+}
+
+.popup.red{
+  background:#800000;
+  box-shadow:0 0 15px red;
+}
+
+.popup.green{
+  background:#008000;
+  box-shadow:0 0 15px lime;
+}
+
+.popup.yellow{
+  background:#888800;
+  box-shadow:0 0 15px yellow;
 }
