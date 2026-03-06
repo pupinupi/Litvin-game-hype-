@@ -16,6 +16,7 @@ chip.style.boxShadow = "0 0 15px " + (chipColor || "red")
 let hype = 0
 let pos = 0
 let skipNext = false
+let rolling = false // чтобы кубик не кликался дважды
 
 const MAX_HYPE = 70
 
@@ -49,29 +50,41 @@ diceBtn.onclick = function() {
     showPopup(riskWindow,"⛔ Пропуск хода","yellow")
     return
   }
+  if(rolling) return
   rollDiceAnimation()
 }
 
-// ===== БРОСОК КУБИКА =====
+// ===== АНИМАЦИЯ КУБИКА =====
 function rollDiceAnimation(){
+  rolling = true
   let count = 0
   diceResult.style.display = "block"
+  let fakeRoll = 1
   const interval = setInterval(()=>{
-    const fake = Math.floor(Math.random()*6)+1
-    diceBtn.innerText = "🎲 "+fake
-    diceResult.innerText = fake
+    fakeRoll = Math.floor(Math.random()*6)+1
+    diceBtn.innerText = "🎲 "+fakeRoll
+    diceResult.innerText = fakeRoll
     count++
-    if(count>=10){
+    highlightDestination(fakeRoll) // подсветка клетки
+    if(count>=12){
       clearInterval(interval)
-      const roll = Math.floor(Math.random()*6)+1
-      diceBtn.innerText = "🎲 "+roll
-      diceResult.innerText = roll
       setTimeout(()=>{
         diceResult.style.display="none"
-        move(roll)
-      },600)
+        move(fakeRoll)
+        rolling = false
+      },300)
     }
-  },80)
+  },70)
+}
+
+// ===== ПОДСВЕТКА КЛЕТКИ =====
+function highlightDestination(roll){
+  const targetPos = (pos + roll) % path.length
+  const boardImg = document.getElementById("boardImg")
+  boardImg.style.boxShadow = `0 0 25px ${
+    path[targetPos].type=="scandal"?"red":
+    path[targetPos].type=="risk"?"yellow":
+    path[targetPos].type=="minus10skip"||path[targetPos].type=="minus15skip"?"red":"white"}`
 }
 
 // ===== ДВИЖЕНИЕ ФИШКИ =====
@@ -80,6 +93,7 @@ function move(steps){
     if(steps<=0){
       clearInterval(interval)
       checkCell(path[pos])
+      boardImgReset()
       return
     }
     pos = (pos+1) % path.length
@@ -92,6 +106,12 @@ function moveChip(){
   const cell = path[pos]
   chip.style.left = cell.x + "px"
   chip.style.top = cell.y + "px"
+}
+
+// Сбрасываем подсветку после хода
+function boardImgReset(){
+  const boardImg = document.getElementById("boardImg")
+  boardImg.style.boxShadow="0 0 20px white"
 }
 
 // ===== ХАЙП =====
@@ -157,6 +177,7 @@ function checkCell(cell){
 
 // ===== РИСК =====
 function riskCard(){
+  highlightPopup(riskWindow)
   showPopup(riskWindow,"🎲 Риск!","yellow")
   setTimeout(()=>{
     const roll = Math.floor(Math.random()*6)+1
@@ -173,46 +194,38 @@ function riskCard(){
 // ===== СКАНДАЛ =====
 function scandalCard(){
   const cards=[
-    "Перегрел аудиторию -1",
-    "Громкий заголовок -2",
-    "Это монтаж -3",
-    "Меня взломали -3",
-    "Подписчики в шоке -4",
-    "Удаляй пока не поздно -5",
-    "Контент вы не понимаете -5",
-    "Алгоритм не продвигает -4",
-    "Комментарии закрыты -2",
-    "Видео удалили -6",
-    "Теневой бан -5",
-    "Неудачная реклама -3",
-    "Срач в комментариях -4",
-    "Нарушение правил -5",
-    "Конфликт с блогером -3",
-    "Отписки -4",
-    "Видео не зашло -2",
-    "Стрим сорвался -3",
-    "Фанаты разочарованы -4",
-    "Жалобы на контент -5",
-    "Неловкий момент -2",
-    "Интернет отключился -1",
-    "Хейт в комментариях -3",
-    "Жалоба на канал -4",
+    "Перегрел аудиторию -1","Громкий заголовок -2","Это монтаж -3",
+    "Меня взломали -3","Подписчики в шоке -4","Удаляй пока не поздно -5",
+    "Контент вы не понимаете -5","Алгоритм не продвигает -4","Комментарии закрыты -2",
+    "Видео удалили -6","Теневой бан -5","Неудачная реклама -3",
+    "Срач в комментариях -4","Нарушение правил -5","Конфликт с блогером -3",
+    "Отписки -4","Видео не зашло -2","Стрим сорвался -3",
+    "Фанаты разочарованы -4","Жалобы на контент -5","Неловкий момент -2",
+    "Интернет отключился -1","Хейт в комментариях -3","Жалоба на канал -4",
     "Блокировка стрима -6"
   ]
   const card = cards[Math.floor(Math.random()*cards.length)]
   const box = document.getElementById("scandalCard")
   const text = document.getElementById("scandalText")
   text.innerText = card
-  box.style.display = "block"
+  highlightPopup(box)
+  box.style.display="block"
   const board = document.getElementById("board")
   const rect = board.getBoundingClientRect()
   box.style.left = (rect.left + rect.width/2 - 130) + "px"
   box.style.top = (rect.top + rect.height/2 - 80) + "px"
-  setTimeout(()=>{ box.style.display = "none" },3000)
+  setTimeout(()=>{ box.style.display="none" },3000)
+}
+
+// Подсветка popup
+function highlightPopup(container){
+  container.style.boxShadow = "0 0 25px gold"
+  setTimeout(()=>{ container.style.boxShadow = "" },2500)
 }
 
 // ===== POPUP =====
 function showPopup(container,text,color){
+  highlightPopup(container)
   container.innerText = text
   container.className = "popup "+color
   container.style.display="block"
