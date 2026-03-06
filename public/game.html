@@ -2,60 +2,27 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Путь к хайпу</title>
-
-<style>
-
-body{
-margin:0;
-font-family:sans-serif;
-text-align:center;
-background:#111;
-color:white;
-}
-
-#board{
-position:relative;
-width:800px;
-margin:auto;
-}
-
-#board img{
-width:100%;
-display:block;
-}
-
-#chip{
-position:absolute;
-width:22px;
-height:22px;
-border-radius:50%;
-border:2px solid white;
-transform:translate(-50%,-50%);
-}
-
-button{
-margin-top:20px;
-font-size:22px;
-padding:10px 25px;
-}
-
-</style>
+<title>Game</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>🔥 Путь к хайпу</h1>
+<h2>Игра</h2>
 
 <div id="board">
 
-<img src="board.jpg">
+<img src="board.jpg" id="boardImg">
 
 <div id="chip"></div>
 
 </div>
 
-<button id="diceBtn">🎲 Бросить кубик</button>
+<button id="dice">Бросить кубик</button>
+
+<div id="diceResult"></div>
+
+<div id="card"></div>
 
 <script src="game.js"></script>
 
