@@ -1,56 +1,112 @@
-const chip = document.getElementById("chip")
-const diceBtn = document.getElementById("diceBtn")
+let chip = document.getElementById("chip")
+
+let color = localStorage.getItem("chip") || "red"
+
+chip.style.background = color
 
 let position = 0
 
-// цвет из лобби
-chip.style.background = localStorage.color || "red"
-
-// координаты клеток
 const path = [
 
-{x:87,y:467},
-{x:63,y:354},
-{x:66,y:285},
-{x:67,y:187},
-{x:76,y:103},
-{x:176,y:77},
-{x:287,y:77},
-{x:397,y:79},
-{x:515,y:76},
-{x:621,y:86},
-{x:721,y:102},
-{x:713,y:181},
-{x:720,y:268},
-{x:720,y:355},
-{x:711,y:454},
-{x:619,y:484},
-{x:513,y:484},
-{x:398,y:471},
-{x:290,y:489},
-{x:158,y:486}
+{ x:20, y:520 },
+{ x:80, y:520 },
+{ x:140, y:520 },
+{ x:200, y:520 },
+{ x:260, y:520 },
+{ x:320, y:520 },
+{ x:380, y:520 },
+{ x:440, y:520 },
+{ x:500, y:520 },
+
+{ x:500, y:460 },
+{ x:500, y:400 },
+{ x:500, y:340 },
+{ x:500, y:280 },
+
+{ x:440, y:280 },
+{ x:380, y:280 },
+{ x:320, y:280 },
+{ x:260, y:280 }
 
 ]
 
-// поставить фишку на старт
-moveChip()
+function moveChip(steps){
 
-diceBtn.onclick = function(){
+let moveInterval = setInterval(()=>{
 
-const roll = Math.floor(Math.random()*6)+1
+if(steps <= 0){
 
-position = (position + roll) % path.length
+clearInterval(moveInterval)
+eventSquare()
+
+return
 }
 
-moveChip()
+position++
+
+if(position >= path.length){
+position = path.length - 1
+}
+
+chip.style.left = path[position].x + "px"
+chip.style.top = path[position].y + "px"
+
+steps--
+
+},300)
 
 }
 
-function moveChip(){
+document.getElementById("dice").onclick = function(){
 
-const cell = path[position]
+let roll = Math.floor(Math.random()*6)+1
 
-chip.style.left = cell.x + "px"
-chip.style.top = cell.y + "px"
+document.getElementById("diceResult").innerText = "Выпало: " + roll
+
+moveChip(roll)
+
+}
+
+function eventSquare(){
+
+let rand = Math.random()
+
+if(rand < 0.3){
+
+showCard()
+
+}else if(rand < 0.6){
+
+showRisk()
+
+}
+
+}
+
+function showCard(){
+
+let cards = [
+"Вы нашли клад 💰",
+"Потеряли 10 монет 💸",
+"Получили бонус ⭐"
+]
+
+let text = cards[Math.floor(Math.random()*cards.length)]
+
+alert(text)
+
+}
+
+function showRisk(){
+
+let risks = [
+"Вы пропускаете ход",
+"Вернитесь на 2 клетки",
+"Получите +1 ход"
+]
+
+let text = risks[Math.floor(Math.random()*risks.length)]
+
+alert("Риск! " + text)
 
 }
