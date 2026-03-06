@@ -4,6 +4,7 @@ const hypeText = document.getElementById("hypeValue")
 const hypeFill = document.getElementById("hypeFill")
 const riskWindow = document.getElementById("riskWindow")
 const diceResult = document.getElementById("diceResult")
+const ruleWindow = document.getElementById("ruleWindow")
 
 const playerName = localStorage.getItem("playerName")
 const chipColor = localStorage.getItem("chipColor")
@@ -17,7 +18,6 @@ let hype = 0
 let pos = 0
 let skipNext = false
 let rolling = false
-
 const MAX_HYPE = 70
 
 // Путь клеток
@@ -43,6 +43,7 @@ const path = [
 
 // стартовая позиция фишки
 moveChip()
+showRuleWindow()
 
 diceBtn.onclick = function() {
   if(skipNext){
@@ -89,17 +90,14 @@ function highlightDestination(roll){
 
 // ===== ДВИЖЕНИЕ ФИШКИ (плавное) =====
 function move(steps){
-  let interval = setInterval(()=>{
-    if(steps<=0){
-      clearInterval(interval)
-      checkCell(path[pos])
-      boardImgReset()
-      return
-    }
-    pos = (pos+1) % path.length
-    moveChip()
-    steps--
-  },220)
+  if(steps <= 0){
+    checkCell(path[pos])
+    boardImgReset()
+    return
+  }
+  pos = (pos + 1) % path.length
+  moveChip()
+  setTimeout(()=>{ move(steps - 1) }, 350) // ждём завершения transition
 }
 
 function moveChip(){
@@ -247,4 +245,13 @@ function winGame(){
   document.getElementById("winnerText").innerText = playerName+" набрал 70 хайпа!"
   document.getElementById("winScreen").style.display="flex"
   diceBtn.disabled=true
+}
+
+// ===== ЛОББИ — краткие правила без тренда и вируса =====
+function showRuleWindow(){
+  const txt = "🏆 Победа при 70 хайпа\n🎲 Риск: 1-3 +6, 4-6 -4"
+  ruleWindow.innerText = txt
+  ruleWindow.className="popup yellow centerPopup"
+  ruleWindow.style.display="block"
+  setTimeout(()=>ruleWindow.style.display="none",5000)
 }
