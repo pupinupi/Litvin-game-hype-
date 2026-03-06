@@ -39,10 +39,7 @@ diceBtn.onclick = function(){
 
 const roll = Math.floor(Math.random()*6)+1
 
-position += roll
-
-if(position >= path.length){
-position = path.length - 1
+position = (position + roll) % path.length
 }
 
 moveChip()
