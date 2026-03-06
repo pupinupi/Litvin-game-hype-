@@ -16,7 +16,7 @@ chip.style.boxShadow = "0 0 15px " + (chipColor || "red")
 let hype = 0
 let pos = 0
 let skipNext = false
-let rolling = false // чтобы кубик не кликался дважды
+let rolling = false
 
 const MAX_HYPE = 70
 
@@ -65,7 +65,7 @@ function rollDiceAnimation(){
     diceBtn.innerText = "🎲 "+fakeRoll
     diceResult.innerText = fakeRoll
     count++
-    highlightDestination(fakeRoll) // подсветка клетки
+    highlightDestination(fakeRoll)
     if(count>=12){
       clearInterval(interval)
       setTimeout(()=>{
@@ -87,7 +87,7 @@ function highlightDestination(roll){
     path[targetPos].type=="minus10skip"||path[targetPos].type=="minus15skip"?"red":"white"}`
 }
 
-// ===== ДВИЖЕНИЕ ФИШКИ =====
+// ===== ДВИЖЕНИЕ ФИШКИ (плавное) =====
 function move(steps){
   let interval = setInterval(()=>{
     if(steps<=0){
@@ -104,8 +104,14 @@ function move(steps){
 
 function moveChip(){
   const cell = path[pos]
+  chip.style.transition = "left 0.3s ease, top 0.3s ease"
   chip.style.left = cell.x + "px"
   chip.style.top = cell.y + "px"
+
+  // подпрыгивание при попадании на клетку
+  chip.classList.remove("hypePop")
+  void chip.offsetWidth
+  chip.classList.add("hypePop")
 }
 
 // Сбрасываем подсветку после хода
@@ -214,7 +220,7 @@ function scandalCard(){
   const rect = board.getBoundingClientRect()
   box.style.left = (rect.left + rect.width/2 - 130) + "px"
   box.style.top = (rect.top + rect.height/2 - 80) + "px"
-  setTimeout(()=>{ box.style.display="none" },3000)
+  setTimeout(()=>{ box.style.display = "none" },3000)
 }
 
 // Подсветка popup
