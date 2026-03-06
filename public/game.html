@@ -3,19 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <title>Путь к хайпу</title>
-<link rel="stylesheet" href="style.css">
+
+<style>
+
+body{
+font-family:sans-serif;
+text-align:center;
+background:#111;
+color:white;
+}
+
+#game{
+position:relative;
+width:800px;
+margin:auto;
+}
+
+#board{
+width:800px;
+}
+
+#chip{
+width:24px;
+height:24px;
+border-radius:50%;
+border:2px solid white;
+position:absolute;
+transform:translate(-50%,-50%);
+}
+
+#diceBtn{
+font-size:22px;
+padding:10px 20px;
+margin-top:10px;
+}
+
+#hype{
+font-size:20px;
+margin:10px;
+}
+
+.popup{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:rgba(0,0,0,0.8);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.popupBox{
+background:white;
+color:black;
+padding:30px;
+border-radius:10px;
+max-width:300px;
+}
+
+</style>
+
 </head>
 
 <body>
 
 <h1>🔥 Путь к хайпу</h1>
 
-<div id="playersPanel"></div>
-<div id="messageBox"></div>
+<div id="hype">Хайп: 0</div>
 
-<canvas id="gameCanvas"></canvas>
+<div id="game">
 
-<button id="diceBtn">БРОСИТЬ</button>
+<img id="board" src="board.jpg">
+
+<div id="chip"></div>
+
+</div>
+
+<button id="diceBtn">🎲 Бросить кубик</button>
+
+<div id="popup" class="popup">
+<div class="popupBox">
+<div id="popupText"></div>
+<br>
+<button onclick="closePopup()">OK</button>
+</div>
+</div>
 
 <script src="game.js"></script>
 
