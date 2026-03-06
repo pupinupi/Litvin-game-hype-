@@ -1,49 +1,79 @@
-const express = require("express")
-const WebSocket = require("ws")
-const http = require("http")
-const app = express()
+// server.js
+const WebSocket = require('ws');
 
-app.use(express.static("public"))
+const wss = new WebSocket.Server({ port: 8080 });
 
-const server = http.createServer(app)
-const wss = new WebSocket.Server({ server })
-const rooms = {} // {roomId: {players:{playerName:{pos,hype,chipColor,skipNext,ws}}}}
+let rooms = {}; // { roomId: { players: { playerName: { chipColor, pos, hype, ws } } } }
 
-wss.on("connection", ws => {
-  ws.on("message", msg => {
-    const data = JSON.parse(msg)
-    switch(data.type){
-      case "joinRoom":
-        if(!rooms[data.roomId]) rooms[data.roomId]={players:{}}
-        rooms[data.roomId].players[data.playerName]={pos:0,hype:0,skipNext:false,chipColor:data.chipColor,ws:ws}
-        broadcastRoom(data.roomId,{type:"updatePlayers",players:rooms[data.roomId].players})
-        break
-      case "diceRoll":
-        handleDiceRoll(data)
-        break
+wss.on('connection', ws => {
+  ws.on('message', message => {
+    try{
+      const data = JSON.parse(message);
+
+      switch(data.type){
+
+        case "joinRoom":
+          let room = rooms[data.roomId] || { players: {} };
+          room.players[data.playerName] = { chipColor: data.chipColor, pos:0, hype:0, ws };
+          rooms[data.roomId] = room;
+          broadcastRoom(data.roomId);
+          break;
+
+        case "diceRoll":
+          const roomDice = rooms[data.roomId];
+          if(!roomDice) return;
+          const roll = Math.floor(Math.random()*6)+1;
+          let player = roomDice.players[data.playerName];
+          if(!player) return;
+          player.pos = (player.pos + roll) %  pathLength;
+          broadcastPlayerMoved(data.roomId, data.playerName, roll, player.pos);
+          break;
+
+        case "skipTurn":
+          const roomSkip = rooms[data.roomId];
+          if(roomSkip && roomSkip.players[data.playerName]){
+            roomSkip.players[data.playerName].skipNext = true;
+            broadcastRoom(data.roomId);
+          }
+          break;
+
+      }
+    }catch(e){ console.log(e) }
+  });
+
+  ws.on('close', () => {
+    // Удаляем игрока из всех комнат
+    for(let roomId in rooms){
+      for(let name in rooms[roomId].players){
+        if(rooms[roomId].players[name].ws === ws){
+          delete rooms[roomId].players[name];
+        }
+      }
+      broadcastRoom(roomId);
     }
-  })
-})
+  });
+});
 
-function broadcastRoom(roomId,message){
-  Object.values(rooms[roomId].players).forEach(p=>{
-    if(p.ws.readyState===WebSocket.OPEN) p.ws.send(JSON.stringify(message))
-  })
-}
-
-function handleDiceRoll(data){
-  const room = rooms[data.roomId]
-  const player = room.players[data.playerName]
-  if(player.skipNext){
-    player.skipNext=false
-    broadcastRoom(data.roomId,{type:"skipTurn",playerName:data.playerName})
-    return
+function broadcastRoom(roomId){
+  const room = rooms[roomId];
+  if(!room) return;
+  const playersData = {};
+  for(let name in room.players){
+    const p = room.players[name];
+    playersData[name] = { chipColor: p.chipColor, pos: p.pos, hype: p.hype };
   }
-  const roll = Math.floor(Math.random()*6)+1
-  player.pos = (player.pos+roll)%17
-  broadcastRoom(data.roomId,{type:"playerMoved",playerName:data.playerName,pos:player.pos,roll:roll})
-  broadcastRoom(data.roomId,{type:"updatePlayers",players:room.players})
+  for(let name in room.players){
+    room.players[name].ws.send(JSON.stringify({ type:"updatePlayers", players: playersData }));
+  }
 }
 
-const PORT = process.env.PORT || 8080
-server.listen(PORT,()=>console.log("Server running on port",PORT))
+function broadcastPlayerMoved(roomId, playerName, roll, pos){
+  const room = rooms[roomId];
+  if(!room) return;
+  for(let name in room.players){
+    room.players[name].ws.send(JSON.stringify({ type:"playerMoved", playerName, roll, pos }));
+  }
+}
+
+const pathLength = 18; // количество клеток
+console.log("Server started on ws://localhost:8080");
