@@ -1,12 +1,12 @@
 const chip = document.getElementById("chip")
 const diceBtn = document.getElementById("diceBtn")
-const hypeText = document.getElementById("hype")
 
 let position = 0
-let hype = 0
 
+// цвет из лобби
 chip.style.background = localStorage.color || "red"
 
+// координаты клеток
 const path = [
 
 {x:87,y:467},
@@ -32,16 +32,18 @@ const path = [
 
 ]
 
+// поставить фишку на старт
 moveChip()
 
-diceBtn.onclick = ()=>{
+diceBtn.onclick = function(){
 
-let roll = Math.floor(Math.random()*6)+1
+const roll = Math.floor(Math.random()*6)+1
 
 position += roll
 
-if(position >= path.length)
-position = path.length-1
+if(position >= path.length){
+position = path.length - 1
+}
 
 moveChip()
 
@@ -51,7 +53,7 @@ function moveChip(){
 
 const cell = path[position]
 
-chip.style.left = cell.x+"px"
-chip.style.top = cell.y+"px"
+chip.style.left = cell.x + "px"
+chip.style.top = cell.y + "px"
 
 }
