@@ -1,39 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
+<title>Lobby</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>🔥 ЛИТВИН — ПУТЬ К ХАЙПУ</h1>
+<h1>Выберите фишку</h1>
 
-<input id="name" placeholder="Имя">
-<input id="room" placeholder="Код комнаты">
+<div class="chips">
+<button onclick="choose('red')">🔴 Красная</button>
+<button onclick="choose('blue')">🔵 Синяя</button>
+<button onclick="choose('green')">🟢 Зеленая</button>
+<button onclick="choose('yellow')">🟡 Желтая</button>
+</div>
 
-<select id="color">
-<option value="yellow">Жёлтая</option>
-<option value="red">Красная</option>
-<option value="blue">Синяя</option>
-<option value="purple">Фиолетовая</option>
-</select>
-
-<button onclick="join()">Войти</button>
-
-<script>
-
-function join(){
-
-localStorage.name = name.value
-localStorage.room = room.value
-localStorage.color = color.value
-
-location = "game.html"
-
-}
-
-</script>
+<script src="lobby.js"></script>
 
 </body>
 </html>
