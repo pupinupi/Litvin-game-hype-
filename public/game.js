@@ -4,10 +4,10 @@ const hypeText = document.getElementById("hypeValue")
 const hypeFill = document.getElementById("hypeFill")
 const riskWindow = document.getElementById("riskWindow")
 const diceResult = document.getElementById("diceResult")
-const ruleWindow = document.getElementById("ruleWindow")
 const scandalBox = document.getElementById("scandalCard")
 const scandalText = document.getElementById("scandalText")
 const playersList = document.getElementById("playersList")
+const ruleWindow = document.getElementById("ruleWindow")
 
 const playerName = localStorage.getItem("playerName") || "Игрок"
 const chipColor = localStorage.getItem("chipColor") || "red"
@@ -20,9 +20,8 @@ chip.style.boxShadow = "0 0 15px "+chipColor
 let hype = 0
 let pos = 0
 let skipNext = false
-let rolling = false
-const MAX_HYPE = 70
 let otherPlayers = {}
+const MAX_HYPE = 70
 
 // Путь клеток
 const path = [
@@ -48,8 +47,8 @@ const path = [
 moveChip()
 showRuleWindow()
 
-// ===== WebSocket =====
-const socket = new WebSocket("ws://YOUR_SERVER_IP:8080") // замените на адрес сервера
+// ===== WebSocket через WSS =====
+const socket = new WebSocket("wss://YOUR_RENDER_URL_HERE") // замените на URL Render
 
 socket.onopen = ()=>{
   socket.send(JSON.stringify({ type:"joinRoom", roomId: currentRoom, playerName, chipColor }));
@@ -59,38 +58,35 @@ socket.onmessage = e=>{
   const data = JSON.parse(e.data);
   switch(data.type){
     case "updatePlayers":
-      updateOtherPlayers(data.players);
+      updateOtherPlayers(data.players)
       break
     case "playerMoved":
       if(data.playerName === playerName){
-        move(data.roll);
+        move(data.roll)
       } else {
-        moveOtherPlayer(data.playerName, data.pos);
+        moveOtherPlayer(data.playerName, data.pos)
       }
       break
   }
 }
 
-// ===== Кнопка кубика =====
-diceBtn.onclick = function() {
-  if(rolling) return
+// ===== Кубик =====
+diceBtn.onclick = function(){
+  if(skipNext) return
   socket.send(JSON.stringify({type:"diceRoll", roomId: currentRoom, playerName}));
 }
 
 // ===== Движение фишки =====
 function move(steps){
-  if(steps<=0){
-    checkCell(path[pos])
-    return
-  }
-  pos = (pos + 1) % path.length
+  if(steps<=0){ checkCell(path[pos]); return }
+  pos = (pos+1)%path.length
   moveChip()
   setTimeout(()=>{ move(steps-1) },350)
 }
 
 function moveChip(){
   const cell = path[pos]
-  chip.style.transition = "left 0.3s ease, top 0.3s ease"
+  chip.style.transition="left 0.3s ease, top 0.3s ease"
   chip.style.left = cell.x+"px"
   chip.style.top = cell.y+"px"
 
@@ -99,26 +95,22 @@ function moveChip(){
   chip.classList.add("hypePop")
 }
 
-// ===== Обновление других игроков =====
+// ===== Другие игроки =====
 function updateOtherPlayers(players){
   otherPlayers = {}
   playersList.innerHTML = ""
-
   for(let name in players){
     const p = players[name]
-
-    // Список участников
     const span = document.createElement("div")
-    span.innerText = name + " — Хайп: " + p.hype
-    span.style.color = (name === playerName) ? chipColor : p.chipColor
+    span.innerText = name + " — Хайп: "+p.hype
+    span.style.color = (name===playerName)?chipColor:p.chipColor
     playersList.appendChild(span)
 
-    // Фишки на поле
-    if(name !== playerName){
+    if(name!==playerName){
       if(!otherPlayers[name]){
         const el = document.createElement("div")
         el.className="chip"
-        el.style.background = p.chipColor
+        el.style.background=p.chipColor
         el.style.position="absolute"
         el.style.width="30px"
         el.style.height="30px"
@@ -128,7 +120,7 @@ function updateOtherPlayers(players){
         document.getElementById("board").appendChild(el)
         otherPlayers[name]={...p, element:el}
       } else {
-        otherPlayers[name].pos = p.pos
+        otherPlayers[name].pos=p.pos
       }
     }
   }
@@ -138,11 +130,11 @@ function moveOtherPlayer(name,pos){
   const player = otherPlayers[name]
   if(player){
     const cell = path[pos]
-    player.element.style.transition = "left 0.3s ease, top 0.3s ease"
+    player.element.style.transition="left 0.3s ease, top 0.3s ease"
     player.element.style.left = cell.x+"px"
     player.element.style.top = cell.y+"px"
   }
 }
 
-// ===== Остальной функционал хайпа, карточек и победы =====
-// (как в предыдущей локальной версии: checkCell, addHype, scandalCard, riskCard, showPopup, winGame)
+// ===== Хайп, карточки и победа =====
+// Используем старую локальную логику: addHype(), checkCell(), scandalCard(), riskCard(), showPopup(), winGame()
