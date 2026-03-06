@@ -2,109 +2,20 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Путь к хайпу</title>
-
-<style>
-
-body{
-font-family:sans-serif;
-text-align:center;
-margin:0;
-background:#111;
-color:white;
-}
-
-#game{
-position:relative;
-width:800px;
-margin:auto;
-}
-
-#board{
-width:800px;
-}
-
-#chip{
-width:22px;
-height:22px;
-border-radius:50%;
-position:absolute;
-border:2px solid white;
-transform:translate(-50%,-50%);
-}
-
-#dice{
-font-size:28px;
-margin-top:10px;
-padding:10px 25px;
-}
-
-#hypeBar{
-width:300px;
-height:20px;
-background:#333;
-margin:10px auto;
-border-radius:10px;
-overflow:hidden;
-}
-
-#hypeFill{
-height:100%;
-width:0%;
-background:orange;
-}
-
-#hypeText{
-margin-top:5px;
-}
-
-#effect{
-position:absolute;
-font-size:22px;
-font-weight:bold;
-pointer-events:none;
-}
-
-#win{
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-background:black;
-color:white;
-display:none;
-align-items:center;
-justify-content:center;
-font-size:40px;
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <h1>🔥 Путь к хайпу</h1>
 
-<div id="hypeBar">
-<div id="hypeFill"></div>
-</div>
+<div id="playersPanel"></div>
+<div id="messageBox"></div>
 
-<div id="hypeText">Хайп: 0 / 70</div>
+<canvas id="gameCanvas"></canvas>
 
-<div id="game">
-
-<img id="board" src="board.jpg">
-
-<div id="chip"></div>
-<div id="effect"></div>
-
-</div>
-
-<button id="dice">🎲 БРОСИТЬ</button>
-
-<div id="win">🏆 ПОБЕДА</div>
+<button id="diceBtn">БРОСИТЬ</button>
 
 <script src="game.js"></script>
 
