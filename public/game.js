@@ -209,13 +209,43 @@ function scandalCard(){
 
 const cards=[
 
-{txt:"🔥 перегрел аудиторию",h:-1},
-{txt:"😱 это монтаж",h:-3},
-{txt:"#️⃣ меня взломали",h:-3},
-{txt:"😮 подписчики в шоке",h:-4},
-{txt:"🤫 удаляй пока не поздно",h:-5},
+{txt:"🔥 Перегрел аудиторию",h:-1},
+{txt:"🫣 Громкий заголовок",h:-2},
+{txt:"😱 Это монтаж!",h:-3},
+{txt:"#️⃣ Меня взломали",h:-3},
+{txt:"😮 Подписчики в шоке",h:-4},
+{txt:"🤫 Удаляй пока не поздно",h:-5},
+{txt:"🙄 Контент вы не понимаете",h:-5,skip:true}
 
 ]
+
+const card=cards[Math.floor(Math.random()*cards.length)]
+
+const cardBox=document.getElementById("scandalCard")
+const text=document.getElementById("scandalText")
+
+text.innerText=card.txt+"\n"+card.h+" хайп"
+
+cardBox.style.display="block"
+
+const board=document.getElementById("board")
+
+const rect=board.getBoundingClientRect()
+
+cardBox.style.left=(rect.left+rect.width/2-130)+"px"
+cardBox.style.top=(rect.top+rect.height/2-80)+"px"
+
+addHype(card.h)
+
+if(card.skip) skipNext=true
+
+setTimeout(()=>{
+
+cardBox.style.display="none"
+
+},3000)
+
+}
 
 const card=cards[Math.floor(Math.random()*cards.length)]
 
