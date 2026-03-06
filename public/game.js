@@ -159,3 +159,139 @@ function moveOtherPlayer(name,pos){
 
 // ===== Хайп, карточки и победа =====
 // Используем старую локальную логику: addHype(), checkCell(), scandalCard(), riskCard(), showPopup(), winGame()
+
+// ===== ПРОВЕРКА КЛЕТКИ =====
+
+function checkCell(cell){
+
+switch(cell.type){
+
+case "+":
+addHype(cell.hype)
+break
+
+case "start":
+addHype(cell.hype)
+showPopup(riskWindow,"🚀 Старт +5 хайпа","green")
+break
+
+case "scandal":
+scandalCard()
+break
+
+case "risk":
+riskCard()
+break
+
+case "minus15":
+addHype(-15)
+showPopup(riskWindow,"-15 хайпа","red")
+break
+
+case "minus8skip":
+addHype(-8)
+skipNext=true
+showPopup(riskWindow,"-8 хайпа и пропуск","red")
+break
+
+case "skip":
+skipNext=true
+showPopup(riskWindow,"⛔ Пропуск хода","yellow")
+break
+
+}
+
+}
+function updateHype(){
+
+if(hype<0) hype=0
+if(hype>MAX_HYPE) hype=MAX_HYPE
+
+hypeText.innerText="Хайп: "+hype
+hypeFill.style.width=(hype/MAX_HYPE*100)+"%"
+
+socket.send(JSON.stringify({
+type:"updateHype",
+roomId: currentRoom,
+playerName,
+hype
+}))
+
+if(hype>=MAX_HYPE) winGame()
+
+}
+
+function addHype(amount){
+hype += amount
+updateHype()
+}
+function riskCard(){
+
+showPopup(riskWindow,"🎲 Риск!","yellow")
+
+setTimeout(()=>{
+
+const roll=Math.floor(Math.random()*6)+1
+
+if(roll<=3){
+addHype(6)
+showPopup(riskWindow,"+6 хайпа","green")
+}else{
+addHype(-4)
+showPopup(riskWindow,"-4 хайпа","red")
+}
+
+},1500)
+
+}
+
+function scandalCard(){
+
+const cards=[
+"Перегрел аудиторию -1",
+"Громкий заголовок -2",
+"Это монтаж -3",
+"Меня взломали -3",
+"Подписчики в шоке -4",
+"Удаляй пока не поздно -5",
+"Контент вы не понимаете -5",
+"Алгоритм не продвигает -4",
+"Комментарии закрыты -2",
+"Видео удалили -6"
+]
+
+const card=cards[Math.floor(Math.random()*cards.length)]
+
+scandalText.innerText=card
+scandalBox.style.display="block"
+
+setTimeout(()=>{
+scandalBox.style.display="none"
+
+const num=parseInt(card.split("-")[1])
+addHype(-num)
+
+},2500)
+
+}
+
+function showPopup(container,text,color){
+
+container.innerText=text
+container.className="popup "+color
+container.style.display="block"
+
+setTimeout(()=>container.style.display="none",2000)
+
+}
+
+function winGame(){
+
+document.getElementById("winnerText").innerText =
+playerName+" набрал 70 хайпа!"
+
+document.getElementById("winScreen").style.display="flex"
+
+diceBtn.disabled=true
+
+}
