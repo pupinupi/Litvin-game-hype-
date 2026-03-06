@@ -2,22 +2,59 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Lobby</title>
+<title>Путь к хайпу — Лобби</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>Выберите фишку</h1>
+<h1>🔥 Путь к хайпу</h1>
+
+<h2>Лобби</h2>
+
+<input id="name" placeholder="Имя игрока">
+
+<br><br>
+
+<input id="room" placeholder="Код комнаты">
+
+<br><br>
+
+<h3>Выбери фишку</h3>
 
 <div class="chips">
-<button onclick="choose('red')">🔴 Красная</button>
-<button onclick="choose('blue')">🔵 Синяя</button>
-<button onclick="choose('green')">🟢 Зеленая</button>
-<button onclick="choose('yellow')">🟡 Желтая</button>
+
+<div class="chip red" onclick="selectChip('red')"></div>
+<div class="chip blue" onclick="selectChip('blue')"></div>
+<div class="chip green" onclick="selectChip('green')"></div>
+<div class="chip yellow" onclick="selectChip('yellow')"></div>
+
 </div>
 
-<script src="lobby.js"></script>
+<br>
+
+<button onclick="startGame()">Начать игру</button>
+
+<script>
+
+let chipColor="red"
+
+function selectChip(color){
+chipColor=color
+}
+
+function startGame(){
+
+const name=document.getElementById("name").value
+
+localStorage.setItem("playerName",name)
+localStorage.setItem("chipColor",chipColor)
+
+window.location="game.html"
+
+}
+
+</script>
 
 </body>
 </html>
