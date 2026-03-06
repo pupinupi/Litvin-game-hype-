@@ -2,58 +2,34 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Путь к хайпу</title>
+<title>Игра — Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h1>🔥 Путь к хайпу</h1>
-
-<div id="player"></div>
-<div id="status">Ваш ход</div>
-
+<h2 id="player"></h2>
 <div id="hypeBar">
-<div id="hypeValue">Хайп: 0</div>
-<div id="hypeScale">
-<div id="hypeFill"></div>
-</div>
+  <div id="hypeValue">Хайп: 0</div>
+  <div id="hypeScale"><div id="hypeFill"></div></div>
 </div>
 
 <div id="board">
-
-<img id="boardImg" src="board.jpg">
-
-<div id="chip"></div>
-
-<div id="diceResult"></div>
-
+  <img id="boardImg" src="board.jpg" alt="Поле">
+  <div id="chip"></div>
 </div>
 
 <button id="diceBtn">🎲 Бросить кубик</button>
-
-<div id="hypeLog"></div>
+<div id="diceResult" style="display:none;position:absolute;top:50px;left:50%"></div>
 
 <div id="riskWindow" class="popup"></div>
-
+<div id="scandalCard" class="popup"><div id="scandalText"></div></div>
 <div id="ruleWindow" class="popup"></div>
 
-<div id="scandalCard" class="card">
-<div class="cardTitle">🔥 Скандал</div>
-<div id="scandalText"></div>
-</div>
-
-<div id="winScreen">
-
-<h1>🏆 Победа!</h1>
-
-<p id="winnerText"></p>
-
-<button onclick="location.reload()">Играть снова</button>
-
+<div id="winScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);color:white;justify-content:center;align-items:center;flex-direction:column;display:flex;font-size:30px;">
+  <div id="winnerText"></div>
+  <button onclick="location.reload()">Начать заново</button>
 </div>
 
 <script src="game.js"></script>
-
 </body>
 </html>
