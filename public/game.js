@@ -7,6 +7,7 @@ const diceResult = document.getElementById("diceResult")
 const ruleWindow = document.getElementById("ruleWindow")
 const scandalBox = document.getElementById("scandalCard")
 const scandalText = document.getElementById("scandalText")
+const playersList = document.getElementById("playersList")
 
 const playerName = localStorage.getItem("playerName") || "Игрок"
 const chipColor = localStorage.getItem("chipColor") || "red"
@@ -21,8 +22,6 @@ let pos = 0
 let skipNext = false
 let rolling = false
 const MAX_HYPE = 70
-
-// массив игроков {playerName: {pos, hype, chipColor, skipNext, element}}
 let otherPlayers = {}
 
 // Путь клеток
@@ -46,12 +45,11 @@ const path = [
   {x:158,y:486,type:"+",hype:4}
 ]
 
-// стартовая позиция фишки
 moveChip()
 showRuleWindow()
 
 // ===== WebSocket =====
-const socket = new WebSocket("wss://YOUR_RENDER_URL_HERE") // <-- замени на свой URL
+const socket = new WebSocket("wss://YOUR_RENDER_URL_HERE") // <-- замените на ваш URL Render
 
 socket.onopen = ()=>{
   socket.send(JSON.stringify({type:"joinRoom", roomId: currentRoom, playerName, chipColor}))
@@ -84,7 +82,7 @@ diceBtn.onclick = function() {
   socket.send(JSON.stringify({type:"diceRoll", roomId: currentRoom, playerName}))
 }
 
-// ===== Плавное движение фишки =====
+// ===== Движение фишки =====
 function move(steps){
   if(steps<=0){
     checkCell(path[pos])
@@ -106,25 +104,37 @@ function moveChip(){
   chip.classList.add("hypePop")
 }
 
-// ===== Движение других игроков =====
+// ===== Обновление других игроков =====
 function updateOtherPlayers(players){
+  otherPlayers = {}
+  playersList.innerHTML = ""
+
   for(let name in players){
-    if(name===playerName) continue
-    if(!otherPlayers[name]){
-      // создаём фишку
-      const el = document.createElement("div")
-      el.className="chip"
-      el.style.background = players[name].chipColor
-      el.style.position="absolute"
-      el.style.width="30px"
-      el.style.height="30px"
-      el.style.borderRadius="50%"
-      el.style.left = path[players[name].pos].x+"px"
-      el.style.top = path[players[name].pos].y+"px"
-      document.getElementById("board").appendChild(el)
-      otherPlayers[name]={...players[name], element:el}
-    } else {
-      otherPlayers[name].pos = players[name].pos
+    const p = players[name]
+
+    // Список участников
+    const span = document.createElement("div")
+    span.innerText = name + " — Хайп: " + p.hype
+    span.style.color = (name === playerName) ? chipColor : p.chipColor
+    playersList.appendChild(span)
+
+    // Фишки на поле
+    if(name !== playerName){
+      if(!otherPlayers[name]){
+        const el = document.createElement("div")
+        el.className="chip"
+        el.style.background = p.chipColor
+        el.style.position="absolute"
+        el.style.width="30px"
+        el.style.height="30px"
+        el.style.borderRadius="50%"
+        el.style.left = path[p.pos].x+"px"
+        el.style.top = path[p.pos].y+"px"
+        document.getElementById("board").appendChild(el)
+        otherPlayers[name]={...p, element:el}
+      } else {
+        otherPlayers[name].pos = p.pos
+      }
     }
   }
 }
@@ -154,7 +164,6 @@ function addHype(amount){
   updateHype()
 }
 
-// Всплывающий + / − хайп
 function showHypeFloat(value){
   const float = document.createElement("div")
   float.className = "hypeFloat"
@@ -167,7 +176,7 @@ function showHypeFloat(value){
   setTimeout(()=>{ float.remove() },1200)
 }
 
-// ===== Проверка клетки =====
+// ===== Проверка клеток =====
 function checkCell(cell){
   switch(cell.type){
     case "+":
