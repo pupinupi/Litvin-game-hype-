@@ -2,13 +2,15 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Game</title>
+<title>Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h2>Игра</h2>
+<h2 id="player"></h2>
+
+<h3 id="dice">🎲</h3>
 
 <div id="board">
 
@@ -18,11 +20,11 @@
 
 </div>
 
-<button id="dice">Бросить кубик</button>
+<button onclick="rollDice()">Бросить кубик</button>
 
-<div id="diceResult"></div>
+<h3 id="hype">Хайп: 10</h3>
 
-<div id="card"></div>
+<div id="riskWindow"></div>
 
 <script src="game.js"></script>
 
