@@ -1,11 +1,13 @@
 body{
+background:#111;
+color:white;
 font-family:Arial;
 text-align:center;
 }
 
 #board{
 position:relative;
-width:600px;
+width:800px;
 margin:auto;
 }
 
@@ -18,14 +20,35 @@ width:30px;
 height:30px;
 border-radius:50%;
 position:absolute;
-background:red;
-left:20px;
-top:520px;
+transform:translate(-50%,-50%);
 z-index:10;
 }
 
 button{
+font-size:20px;
 padding:10px 20px;
-font-size:16px;
-margin-top:10px;
+margin-top:20px;
+}
+
+.chips{
+display:flex;
+justify-content:center;
+gap:20px;
+}
+
+.chip{
+width:40px;
+height:40px;
+border-radius:50%;
+cursor:pointer;
+}
+
+.red{background:red}
+.blue{background:blue}
+.green{background:lime}
+.yellow{background:yellow}
+
+#riskWindow{
+margin-top:20px;
+font-size:20px;
 }
