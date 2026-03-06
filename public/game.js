@@ -1,26 +1,25 @@
-const chip=document.getElementById("chip")
-const diceBtn=document.getElementById("diceBtn")
-const hypeText=document.getElementById("hypeValue")
-const hypeFill=document.getElementById("hypeFill")
-const riskWindow=document.getElementById("riskWindow")
-const ruleWindow=document.getElementById("ruleWindow")
-const diceResult=document.getElementById("diceResult")
+const chip = document.getElementById("chip")
+const diceBtn = document.getElementById("diceBtn")
+const hypeText = document.getElementById("hypeValue")
+const hypeFill = document.getElementById("hypeFill")
+const riskWindow = document.getElementById("riskWindow")
+const diceResult = document.getElementById("diceResult")
 
-const playerName=localStorage.getItem("playerName")
-const chipColor=localStorage.getItem("chipColor")
+const playerName = localStorage.getItem("playerName")
+const chipColor = localStorage.getItem("chipColor")
 
-document.getElementById("player").innerText=playerName
+document.getElementById("player").innerText = playerName || "Игрок"
 
-chip.style.background=chipColor
-chip.style.boxShadow="0 0 15px "+chipColor
+chip.style.background = chipColor || "red"
+chip.style.boxShadow = "0 0 15px " + (chipColor || "red")
 
-let hype=0
-let pos=0
-let skipNext=false
+let hype = 0
+let pos = 0
+let skipNext = false
 
-const MAX_HYPE=70
+const MAX_HYPE = 70
 
-const path=[
+const path = [
 
 {x:87,y:467,type:"start",hype:5},
 {x:63,y:354,type:"+",hype:3},
@@ -41,36 +40,42 @@ const path=[
 {x:513,y:484,type:"scandal"},
 {x:398,y:471,type:"trend"},
 {x:290,y:489,type:"minus15skip"},
-{x:158,y:486,type:"+",hype:4},
+{x:158,y:486,type:"+",hype:4}
 
 ]
 
+// стартовая позиция фишки
 moveChip()
 
-diceBtn.onclick=function(){
+// кнопка кубика
+diceBtn.onclick = function(){
 
 if(skipNext){
-skipNext=false
-showPopup(riskWindow,"Пропуск хода","yellow")
+
+skipNext = false
+showPopup(riskWindow,"⛔ Пропуск хода","yellow")
 return
+
 }
 
 rollDiceAnimation()
 
 }
 
+// ===== БРОСОК КУБИКА =====
+
 function rollDiceAnimation(){
 
-let count=0
+let count = 0
 
-diceResult.style.display="block"
+diceResult.style.display = "block"
 
-const interval=setInterval(()=>{
+const interval = setInterval(()=>{
 
-const fakeRoll=Math.floor(Math.random()*6)+1
+const fake = Math.floor(Math.random()*6)+1
 
-diceBtn.innerText="🎲 "+fakeRoll
-diceResult.innerText=fakeRoll
+diceBtn.innerText = "🎲 "+fake
+diceResult.innerText = fake
 
 count++
 
@@ -78,14 +83,15 @@ if(count>=10){
 
 clearInterval(interval)
 
-const roll=Math.floor(Math.random()*6)+1
+const roll = Math.floor(Math.random()*6)+1
 
-diceBtn.innerText="🎲 "+roll
-diceResult.innerText=roll
+diceBtn.innerText = "🎲 "+roll
+diceResult.innerText = roll
 
 setTimeout(()=>{
 
 diceResult.style.display="none"
+
 move(roll)
 
 },600)
@@ -96,40 +102,50 @@ move(roll)
 
 }
 
+// ===== ДВИЖЕНИЕ =====
+
 function move(steps){
 
-let interval=setInterval(()=>{
+let interval = setInterval(()=>{
 
 if(steps<=0){
+
 clearInterval(interval)
+
 checkCell(path[pos])
+
 return
+
 }
 
-pos=(pos+1)%path.length
+pos = (pos + 1) % path.length
+
 moveChip()
+
 steps--
 
-},200)
+},220)
 
 }
 
 function moveChip(){
 
-const cell=path[pos]
+const cell = path[pos]
 
-chip.style.left=cell.x+"px"
-chip.style.top=cell.y+"px"
+chip.style.left = cell.x + "px"
+chip.style.top = cell.y + "px"
 
 }
+
+// ===== ХАЙП =====
 
 function updateHype(){
 
 if(hype<0) hype=0
 if(hype>MAX_HYPE) hype=MAX_HYPE
 
-hypeText.innerText="Хайп: "+hype
-hypeFill.style.width=(hype/MAX_HYPE*100)+"%"
+hypeText.innerText = "Хайп: " + hype
+hypeFill.style.width = (hype/MAX_HYPE*100)+"%"
 
 if(hype>=MAX_HYPE) winGame()
 
@@ -137,11 +153,13 @@ if(hype>=MAX_HYPE) winGame()
 
 function addHype(amount){
 
-hype+=amount
+hype += amount
 
 updateHype()
 
 }
+
+// ===== ПРОВЕРКА КЛЕТКИ =====
 
 function checkCell(cell){
 
@@ -153,6 +171,7 @@ break
 
 case "start":
 addHype(cell.hype)
+showPopup(riskWindow,"🚀 Старт +5 хайпа","green")
 break
 
 case "scandal":
@@ -174,36 +193,45 @@ break
 case "minus10skip":
 addHype(-10)
 skipNext=true
+showPopup(riskWindow,"-10 хайпа и пропуск","red")
 break
 
 case "minus15skip":
 addHype(-15)
 skipNext=true
+showPopup(riskWindow,"-15 хайпа и пропуск","red")
 break
 
 case "skip":
 skipNext=true
+showPopup(riskWindow,"⛔ Пропуск хода","yellow")
 break
 
 }
 
 }
 
+// ===== ТРЕНД =====
+
 function trendCard(){
 
-showPopup(riskWindow,"⚡ Тренд! +10 хайпа","green")
+showPopup(riskWindow,"⚡ Вы в тренде!","green")
 
 setTimeout(()=>{
 
 addHype(10)
 
-},1000)
+showPopup(riskWindow,"+10 хайпа","green")
+
+},1200)
 
 }
 
+// ===== ВИРУС =====
+
 function virusCard(){
 
-showPopup(riskWindow,"🚀 Вирусное видео!","green")
+showPopup(riskWindow,"🚀 Видео завирусилось!","green")
 
 setTimeout(()=>{
 
@@ -215,9 +243,11 @@ showPopup(riskWindow,"+15 хайпа","green")
 
 }
 
+// ===== РИСК =====
+
 function riskCard(){
 
-showPopup(riskWindow,"Риск!","yellow")
+showPopup(riskWindow,"🎲 Риск!","yellow")
 
 setTimeout(()=>{
 
@@ -238,6 +268,8 @@ showPopup(riskWindow,"-4 хайпа","red")
 },2000)
 
 }
+
+// ===== СКАНДАЛ =====
 
 function scandalCard(){
 
@@ -271,12 +303,12 @@ const cards=[
 
 ]
 
-const card=cards[Math.floor(Math.random()*cards.length)]
+const card = cards[Math.floor(Math.random()*cards.length)]
 
 const box=document.getElementById("scandalCard")
 const text=document.getElementById("scandalText")
 
-text.innerText=card
+text.innerText = card
 
 box.style.display="block"
 
@@ -294,6 +326,8 @@ box.style.display="none"
 
 }
 
+// ===== POPUP =====
+
 function showPopup(container,text,color){
 
 container.innerText=text
@@ -310,9 +344,11 @@ setTimeout(()=>container.style.display="none",2500)
 
 }
 
+// ===== ПОБЕДА =====
+
 function winGame(){
 
-document.getElementById("winnerText").innerText=playerName+" набрал 70 хайпа!"
+document.getElementById("winnerText").innerText = playerName+" набрал 70 хайпа!"
 
 document.getElementById("winScreen").style.display="flex"
 
