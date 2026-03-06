@@ -6,7 +6,7 @@ const port = process.env.PORT || 8080;
 const wss = new WebSocket.Server({ port });
 
 let rooms = {}; // { roomId: { players: { playerName: { chipColor, pos, hype, ws } } } }
-const pathLength = 18; // количество клеток
+const pathLength = 20; // количество клеток
 
 wss.on('connection', ws => {
   ws.on('message', message => {
