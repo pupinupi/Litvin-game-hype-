@@ -1,21 +1,18 @@
-const chip = document.getElementById("chip")
-const dice = document.getElementById("dice")
+const canvas = document.getElementById("gameCanvas")
+const ctx = canvas.getContext("2d")
 
-const effect = document.getElementById("effect")
+canvas.width = 800
+canvas.height = 600
 
-const hypeFill = document.getElementById("hypeFill")
-const hypeText = document.getElementById("hypeText")
-
-const winScreen = document.getElementById("win")
+const board = new Image()
+board.src = "board.jpg"
 
 let position = 0
 let hype = 0
 
-// цвет из лобби
-chip.style.background = localStorage.color || "red"
+const color = localStorage.color || "red"
 
-
-// координаты клеток
+// координаты твоего поля
 const path = [
 
 {x:87,y:467},
@@ -41,111 +38,92 @@ const path = [
 
 ]
 
+board.onload = draw
 
-moveChip()
+
+function draw(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+ctx.drawImage(board,0,0,800,600)
+
+// фишка
+let p = path[position]
+
+ctx.beginPath()
+ctx.arc(p.x,p.y,12,0,Math.PI*2)
+ctx.fillStyle=color
+ctx.fill()
+
+}
 
 
-dice.onclick = ()=>{
+document.getElementById("diceBtn").onclick=()=>{
 
 let roll = Math.floor(Math.random()*6)+1
 
 position += roll
 
-if(position >= path.length)
-position = path.length-1
-
-moveChip()
+if(position>19)
+position=19
 
 cellEffect()
 
-}
-
-
-function moveChip(){
-
-chip.style.left = path[position].x+"px"
-chip.style.top = path[position].y+"px"
+draw()
 
 }
 
 
 function cellEffect(){
 
-let change = 0
-
 switch(position){
 
-case 1: change=3; break
-case 2: change=2; break
-case 5: change=2; break
-case 7: change=3; break
-case 8: change=5; break
-case 11: change=3; break
-case 13: change=3; break
-case 15: change=2; break
-case 17: change=8; break
-case 19: change=4; break
+case 1: hype+=3; message("+3 хайп"); break
+case 2: hype+=2; message("+2 хайп"); break
+case 5: hype+=2; message("+2 хайп"); break
+case 7: hype+=3; message("+3 хайп"); break
+case 8: hype+=5; message("+5 хайп"); break
+case 11: hype+=3; message("+3 хайп"); break
+case 13: hype+=3; message("+3 хайп"); break
+case 15: hype+=2; message("+2 хайп"); break
+case 17: hype+=8; message("+8 хайп"); break
+case 19: hype+=4; message("+4 хайп"); break
 
 case 9:
 case 18:
 hype=0
-showEffect("ВСЁ -0")
-updateHype()
-return
+message("Весь хайп потерян")
+break
 
 case 10:
 hype-=10
-showEffect("-10")
-updateHype()
-return
+message("-10 хайп")
+break
 
 }
-
-
-if(change!==0){
-
-hype += change
-showEffect("+"+change)
-
-updateHype()
-
-}
-
-}
-
-
-function updateHype(){
 
 if(hype<0) hype=0
 
-hypeFill.style.width = (hype/70*100)+"%"
-
-hypeText.innerText = "Хайп: "+hype+" / 70"
-
-
 if(hype>=70){
 
-winScreen.style.display="flex"
+alert("ПОБЕДА!")
 
 }
 
+updatePanel()
+
 }
 
 
-function showEffect(text){
+function message(text){
 
-effect.innerText=text
+document.getElementById("messageBox").innerText=text
 
-effect.style.left = chip.style.left
-effect.style.top = chip.style.top
+}
 
-effect.style.opacity=1
-effect.style.transform="translate(-50%,-50%)"
 
-setTimeout(()=>{
+function updatePanel(){
 
-effect.style.opacity=0
-
-},900)
+document.getElementById("playersPanel").innerText="Хайп: "+hype
 
 }
