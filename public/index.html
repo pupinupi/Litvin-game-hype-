@@ -5,33 +5,69 @@
 <title>Лобби — Путь к хайпу</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
 <h1>🔥 Путь к хайпу</h1>
+
 <h2>Лобби</h2>
 
 <input id="name" placeholder="Имя игрока"><br><br>
 <input id="room" placeholder="Код комнаты"><br><br>
 
 <h3>Выбери фишку</h3>
+
 <div class="chips">
-  <div class="chip red" onclick="selectChip('red')"></div>
-  <div class="chip blue" onclick="selectChip('blue')"></div>
-  <div class="chip green" onclick="selectChip('green')"></div>
-  <div class="chip yellow" onclick="selectChip('yellow')"></div>
+
+<div class="chip red" onclick="selectChip('🔴red')"></div>
+<div class="chip blue" onclick="selectChip('🔵blue')"></div>
+<div class="chip green" onclick="selectChip('🟢green')"></div>
+<div class="chip yellow" onclick="selectChip('🟡yellow')"></div>
+
 </div>
 
 <br>
+
 <button onclick="startGame()">Начать игру</button>
 
+<div class="rules">
+
+<h3>📜 Краткие правила</h3>
+
+<p>🏆 Победа — набрать <b>70 хайпа</b></p>
+
+<p>🎲 Кнопка <b>Риск</b> — бросок:</p>
+<p>1-3 → +6 хайпа</p>
+<p>4-6 → −4 хайпа</p>
+
+<p>🚔 Тюрьма — пропуск хода</p>
+
+<p>⚖️ Суд — пропуск хода</p>
+
+<p>🔥 Скандал — случайная карточка</p>
+
+</div>
+
 <script>
+
 let chipColor="red"
-function selectChip(color){ chipColor=color }
-function startGame(){
-  const name=document.getElementById("name").value || "Игрок"
-  localStorage.setItem("playerName",name)
-  localStorage.setItem("chipColor",chipColor)
-  window.location="game.html"
+
+function selectChip(color){
+chipColor=color
 }
+
+function startGame(){
+
+const name=document.getElementById("name").value || "Игрок"
+
+localStorage.setItem("playerName",name)
+localStorage.setItem("chipColor",chipColor)
+
+window.location="game.html"
+
+}
+
 </script>
+
 </body>
 </html>
