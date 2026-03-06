@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔥 Путь к хайпу</title>
-<link rel="stylesheet" href="style.css">
+<title>Путь к хайпу</title>
 
 <style>
 
@@ -12,6 +11,8 @@ body{
 font-family:sans-serif;
 text-align:center;
 margin:0;
+background:#111;
+color:white;
 }
 
 #game{
@@ -24,43 +25,59 @@ margin:auto;
 width:800px;
 }
 
-.chip{
-position:absolute;
-width:28px;
-height:28px;
+#chip{
+width:22px;
+height:22px;
 border-radius:50%;
+position:absolute;
 border:2px solid white;
 transform:translate(-50%,-50%);
 }
 
-#diceBtn{
-font-size:20px;
-padding:12px;
+#dice{
+font-size:28px;
 margin-top:10px;
-}
-
-#diceResult{
-font-size:22px;
-margin:10px;
+padding:10px 25px;
 }
 
 #hypeBar{
-width:400px;
+width:300px;
 height:20px;
-background:#ddd;
-margin:auto;
+background:#333;
+margin:10px auto;
+border-radius:10px;
+overflow:hidden;
 }
 
 #hypeFill{
 height:100%;
 width:0%;
-background:red;
+background:orange;
 }
 
-#message{
-margin-top:10px;
-font-size:18px;
+#hypeText{
+margin-top:5px;
+}
+
+#effect{
+position:absolute;
+font-size:22px;
 font-weight:bold;
+pointer-events:none;
+}
+
+#win{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:black;
+color:white;
+display:none;
+align-items:center;
+justify-content:center;
+font-size:40px;
 }
 
 </style>
@@ -74,19 +91,20 @@ font-weight:bold;
 <div id="hypeFill"></div>
 </div>
 
-<div id="diceResult"></div>
+<div id="hypeText">Хайп: 0 / 70</div>
 
 <div id="game">
 
 <img id="board" src="board.jpg">
 
-<div id="chip" class="chip"></div>
+<div id="chip"></div>
+<div id="effect"></div>
 
 </div>
 
-<button id="diceBtn">БРОСИТЬ КУБИК</button>
+<button id="dice">🎲 БРОСИТЬ</button>
 
-<div id="message"></div>
+<div id="win">🏆 ПОБЕДА</div>
 
 <script src="game.js"></script>
 
